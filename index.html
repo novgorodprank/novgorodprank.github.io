@@ -1,105 +1,160 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="uk">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Відео готове 🎬</title>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#09090d">
+<meta name="description" content="Темний хорор-квест: знайди три печатки й виберися з покинутої станції.">
+<title>Остання зміна — хорор-квест</title>
 <style>
+:root{color-scheme:dark;--bg:#09090d;--panel:#15151d;--red:#e3233a;--muted:#aaa8b4;--text:#f4f1f4;--line:#34313c}
 *{box-sizing:border-box}
-body{
-  margin:0;background:#080808;color:white;
-  font-family:Arial,sans-serif;text-align:center;
-}
-header{
-  padding:20px;font-size:25px;font-weight:bold;
-  border-bottom:1px solid #333;
-}
-main{padding:35px 22px}
-.card{
-  max-width:380px;margin:25px auto;padding:25px 18px;
-  background:#191919;border-radius:18px;
-}
-button{
-  width:100%;padding:16px;border:0;border-radius:9px;
-  background:#fe2c55;color:white;font-size:18px;
-  font-weight:bold;margin-top:24px;
-}
-#loading,#scare{display:none}
-.track{
-  height:7px;background:#444;border-radius:9px;
-  overflow:hidden;margin-top:25px;
-}
-#bar{
-  height:100%;width:0;background:#25f4ee;
-}
-#scare{
-  position:fixed;inset:0;background:#000;
-  z-index:10;align-items:center;justify-content:center;
-  flex-direction:column;padding:15px;
-}
-#scare img{
-  width:100%;height:75vh;object-fit:contain;
-}
-#scare h2{color:#ff304f}
+body{margin:0;min-height:100svh;background:radial-gradient(ellipse at 50% -20%,#3a101b 0,transparent 48%),var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+button{font:inherit;cursor:pointer;touch-action:manipulation}
+button:focus-visible{outline:3px solid #ff6878;outline-offset:3px}
+.shell{width:min(760px,100%);margin:auto;padding:18px 15px calc(28px + env(safe-area-inset-bottom))}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
+.brand{font-size:.82rem;letter-spacing:.18em;text-transform:uppercase;color:#ff6475;font-weight:800}
+.status{font-size:.75rem;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:5px 10px}
+h1{font-size:clamp(2rem,9vw,3.4rem);line-height:1.02;margin:.2rem 0 .8rem;letter-spacing:-.045em}
+h1 span{color:var(--red)}
+.intro{color:#c5c1cc;max-width:56ch;margin:0 0 18px}
+.panel{background:linear-gradient(145deg,rgba(28,25,34,.96),rgba(14,14,20,.98));border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 18px 50px #0006}
+.scene{position:relative;min-height:210px;border-radius:14px;overflow:hidden;border:1px solid #3b252e;background:linear-gradient(180deg,#14121a,#09090d);display:flex;align-items:center;justify-content:center;text-align:center;padding:22px;margin-bottom:16px}
+.scene:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 3px,#ffffff05 4px),radial-gradient(ellipse at center,#6a1a2b33,transparent 65%);pointer-events:none}
+.scene-inner{position:relative;z-index:1}
+.scene-icon{font-size:3rem;filter:drop-shadow(0 0 15px #e3233a66)}
+.scene h2{font-size:1.3rem;margin:.4rem 0}
+.scene p{margin:0;color:#c5c1cc;max-width:45ch}
+.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0}
+.stat{border:1px solid var(--line);border-radius:12px;padding:10px;background:#0c0c12}
+.stat small{display:block;color:var(--muted);font-size:.72rem}
+.stat strong{font-size:1.05rem}
+.progress{height:6px;border-radius:99px;background:#30232a;overflow:hidden;margin:8px 0 16px}
+.progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,#871326,#ff4058);transition:width .25s}
+.story{white-space:pre-line;color:#e6e1e8;min-height:62px;margin:10px 0 16px}
+.actions{display:grid;grid-template-columns:1fr;gap:9px}
+.choice{width:100%;text-align:left;background:#211922;color:var(--text);border:1px solid #49303a;border-radius:12px;padding:13px 14px;transition:background .15s,border-color .15s}
+.choice:hover{background:#321a25;border-color:#a33146}
+.choice:disabled{opacity:.45;cursor:not-allowed}
+.primary{background:var(--red);border:1px solid #ff5267;color:white;font-weight:800;text-align:center}
+.primary:hover{background:#ff344d}
+.secondary{text-align:center;background:#171720;border-color:#393743}
+.hint{font-size:.85rem;color:var(--muted);margin:12px 0 0}
+.footer{margin:16px 4px 0;color:#777480;font-size:.75rem;text-align:center}
+.overlay{position:fixed;inset:0;z-index:10;display:none;background:#050507;color:white;align-items:center;justify-content:center;flex-direction:column;padding:20px;text-align:center}
+.overlay.show{display:flex;animation:flash .18s steps(2,end) 3}
+.overlay img{max-width:92vw;max-height:70svh;object-fit:contain;border:2px solid #e3233a;box-shadow:0 0 40px #e3233a55}
+.overlay p{font-weight:900;letter-spacing:.12em;color:#ff596b}
+.overlay button{margin-top:12px}
+@keyframes flash{0%,100%{background:#050507}50%{background:#36000a}}
+@media(min-width:560px){.actions{grid-template-columns:1fr 1fr}.scene{min-height:245px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
 </style>
 </head>
 <body>
-<header>♪ TikTok</header>
-<main id="intro">
-  <div class="card">
-    <div style="font-size:48px">▶</div>
-    <h2>Відео готове до перегляду</h2>
-    <p>Натисни, щоб підтвердити перегляд 🎁</p>
-    <button id="confirm">Підтвердити</button>
-  </div>
-</main>
-
-<main id="loading">
-  <h2>Завантаження відео…</h2>
-  <p id="percent">0%</p>
-  <div class="track"><div id="bar"></div></div>
-  <p>Будь ласка, зачекай</p>
-</main>
-
-<div id="scare">
-  <img id="face" src="/scary.jpg" alt="Страшне обличчя">
-  <h2>АХАХА 😂 ТЕБЕ РОЗІГРАЛИ!</h2>
-  <button id="close">Закрити</button>
+<div class="shell">
+<header><div class="brand">Night Shift / 01</div><div class="status" id="status">СИГНАЛ: НЕСТАБІЛЬНИЙ</div></header>
+<main>
+<h1>Остання <span>зміна</span></h1>
+<p class="intro">Ти залишився сам на покинутій станції. Світло згасає, двері замкнені, а в коридорі хтось ходить. Знайди три печатки й виберися до світанку.</p>
+<section class="panel" aria-live="polite">
+<div class="scene"><div class="scene-inner"><div class="scene-icon" id="sceneIcon">🌑</div><h2 id="sceneTitle">Станція мовчить</h2><p id="sceneSub">Ти чуєш три удари з-за зачинених дверей.</p></div></div>
+<div class="grid">
+<div class="stat"><small>Печатки</small><strong id="seals">0 / 3</strong></div>
+<div class="stat"><small>Ліхтарик</small><strong id="battery">100%</strong></div>
+<div class="stat"><small>Небезпека</small><strong id="danger">Низька</strong></div>
 </div>
-
+<div class="progress" aria-label="Знайдені печатки"><span id="progress"></span></div>
+<div class="story" id="story">На стіні написано: «Не відповідай, якщо почуєш власний голос».</div>
+<div class="actions" id="actions">
+<button class="choice" data-action="hall">🚪 Увійти в коридор</button>
+<button class="choice" data-action="desk">🗄️ Обшукати чергову</button>
+<button class="choice" data-action="stairs">🪜 Спуститися в підвал</button>
+<button class="choice" data-action="listen">👂 Прислухатися</button>
+</div>
+<p class="hint" id="hint">Порада: оглядай місця уважно. Деякі знахідки відкривають нові можливості.</p>
+</section>
+</main>
+<p class="footer">Гра працює локально в браузері. Камера, геолокація та особисті дані не використовуються.</p>
+</div>
+<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="overlayText">
+<img id="scareImage" src="scary.jpg" alt="Страшне зображення" hidden>
+<p id="overlayText">ТИ НЕ САМ</p>
+<button class="choice primary" id="closeScare">Повернутися до гри</button>
+</div>
+<audio id="scareAudio" src="scream.mp3" preload="auto"></audio>
 <script>
-const confirmBtn=document.getElementById('confirm');
-const loading=document.getElementById('loading');
-const intro=document.getElementById('intro');
-const scare=document.getElementById('scare');
-const bar=document.getElementById('bar');
-const percent=document.getElementById('percent');
-const audio=new Audio('/scream.mp3');
-audio.volume=1;
-
-confirmBtn.onclick=()=>{
-  intro.style.display='none';
-  loading.style.display='block';
-  let n=0;
-  const timer=setInterval(()=>{
-    n+=10;
-    bar.style.width=n+'%';
-    percent.textContent=n+'%';
-    if(n>=100){
-      clearInterval(timer);
-      loading.style.display='none';
-      scare.style.display='flex';
-      audio.play().catch(()=>{});
-    }
-  },180);
+(() => {
+const $ = id => document.getElementById(id);
+const state = {seals:0,battery:100,danger:0,visited:new Set(),key:false,ending:false,scareShown:false};
+const scenes = {
+hall:{icon:"🚪",title:"Коридор",sub:"Лампа блимає над дверима з трьома замками.",story:"На підлозі тягнеться мокрий слід. Він веде до вентиляційної решітки.",actions:[["vent","🔦 Оглянути вентиляцію"],["door","🔒 Перевірити двері"],["back","↩️ Повернутися до станції"]]},
+desk:{icon:"🗄️",title:"Черговий пост",sub:"Старий монітор світиться, хоча живлення вимкнене.",story:"У шухляді лежить записка: «Те, що шукаєш, уже знає твоє ім’я». Під запискою — батарейка.",actions:[["battery","🔋 Замінити батарейку"],["monitor","🖥️ Увімкнути монітор"],["back","↩️ Повернутися до станції"]]},
+stairs:{icon:"🪜",title:"Підвал",sub:"Знизу тягне холодом. Сходи скриплять за кожним кроком.",story:"На бетоні намальований знак. Поруч щось блищить у темряві.",actions:[["mark","🩸 Дослідити знак"],["shiny","✨ Підібрати блискучий предмет"],["back","↩️ Повернутися до станції"]]},
+vent:{icon:"🕳️",title:"Вентиляція",sub:"Решітка відходить із глухим скреготом.",story:"За нею захована перша печатка. У пилюці видно свіжі відбитки пальців.",actions:[["seal1","✋ Забрати печатку"],["back","↩️ Відійти"]]},
+door:{icon:"🔒",title:"Замкнені двері",sub:"Три порожні гнізда для печаток.",story:"Двері не піддаються. Спочатку знайди всі три печатки.",actions:[["trydoor","🚪 Спробувати відчинити"],["back","↩️ Відійти"]]},
+battery:{icon:"🔋",title:"Ліхтарик заряджено",sub:"Промінь став яскравішим.",story:"Тепер ти можеш довше досліджувати темні місця.",actions:[["back","↩️ Назад"]]},
+monitor:{icon:"🖥️",title:"Монітор",sub:"На екрані відображається камера порожнього коридору.",story:"За твоєю спиною на записі стоїть силует. Ти обертаєшся — нікого. Знайдено підказку: підвал.",actions:[["back","↩️ Назад"],["stairs","🪜 Іти в підвал"]]},
+mark:{icon:"🩸",title:"Знак на бетоні",sub:"Лінії утворюють символ замка.",story:"Ти торкаєшся знака. У голові лунає шепіт: «Шукай там, де вода не тече».",actions:[["back","↩️ Назад"],["drain","🕳️ Оглянути стік"]]},
+shiny:{icon:"✨",title:"Срібний ключ",sub:"Метал крижаний на дотик.",story:"Ти знайшов ключ від старої шафки в черговій.",actions:[["key","🗝️ Забрати ключ"],["back","↩️ Назад"]]},
+drain:{icon:"🕳️",title:"Стік",sub:"Під решіткою щось заховано.",story:"Ти дістаєш другу печатку, вкриту чорною сажею.",actions:[["seal2","✋ Забрати печатку"],["back","↩️ Назад"]]},
+key:{icon:"🗝️",title:"Ключ у кишені",sub:"Тепер можна відкрити шафку чергового.",story:"Повернись до чергової та пошукай замкнену шафку.",actions:[["back","↩️ Назад"],["locker","🗄️ Відкрити шафку"]]},
+locker:{icon:"🗄️",title:"Шафка",sub:"Замок клацає.",story:"Усередині третя печатка й записка: «Вихід чекає на того, хто не озирнеться».",actions:[["seal3","✋ Забрати печатку"],["back","↩️ Назад"]]},
+exit:{icon:"🚪",title:"Вихід",sub:"Три печатки тремтять у замках.",story:"Ти чуєш кроки просто за спиною. Відчинити двері — останній шанс.",actions:[["escape","🏃 Відчинити й утекти"],["look","👁️ Озирнутися"]]},
 };
-
-document.getElementById('close').onclick=()=>{
-  audio.pause();
-  audio.currentTime=0;
-  scare.style.display='none';
-  intro.style.display='block';
-};
+function renderScene(key){
+ const s=scenes[key]||scenes.hall;
+ $("sceneIcon").textContent=s.icon;$("sceneTitle").textContent=s.title;$("sceneSub").textContent=s.sub;$("story").textContent=s.story;
+ const actions=$("actions");actions.replaceChildren();
+ s.actions.forEach(([act,label])=>{const b=document.createElement("button");b.className="choice";b.textContent=label;b.addEventListener("click",()=>doAction(act));actions.appendChild(b)});
+ updateStats();
+}
+function say(text){$("story").textContent=text}
+function updateStats(){
+ $("seals").textContent=`${state.seals} / 3`;$("battery").textContent=`${state.battery}%`;
+ $("danger").textContent=state.danger<2?"Низька":state.danger<4?"Зростає":"КРИТИЧНА";
+ $("progress").style.width=`${state.seals/3*100}%`;
+ $("status").textContent=state.danger>=4?"НЕБЕЗПЕКА":"СИГНАЛ: НЕСТАБІЛЬНИЙ";
+}
+function doAction(a){
+ if(state.ending)return;
+ if(["hall","desk","stairs"].includes(a)){
+   state.visited.add(a);state.battery=Math.max(0,state.battery-5);state.danger=Math.min(5,state.danger+1);renderScene(a);return;
+ }
+ switch(a){
+ case "back":renderScene("home");$("sceneIcon").textContent="🌑";$("sceneTitle").textContent="Станція мовчить";$("sceneSub").textContent="Ти чуєш три удари з-за зачинених дверей.";say("На стіні написано: «Не відповідай, якщо почуєш власний голос».");$("actions").innerHTML="";[["hall","🚪 Увійти в коридор"],["desk","🗄️ Обшукати чергову"],["stairs","🪜 Спуститися в підвал"],["listen","👂 Прислухатися"]].forEach(([act,label])=>{let b=document.createElement("button");b.className="choice";b.textContent=label;b.onclick=()=>doAction(act);$("actions").appendChild(b)});break;
+ case "listen":state.danger=Math.min(5,state.danger+1);say("З темряви лунає твій голос: «Я вже тут». Ти не відповідаєш. Краще досліджувати станцію.");updateStats();break;
+ case "vent":renderScene("vent");break;
+ case "door":renderScene("door");break;
+ case "battery":state.battery=100;renderScene("battery");break;
+ case "monitor":renderScene("monitor");break;
+ case "mark":renderScene("mark");break;
+ case "shiny":renderScene("shiny");break;
+ case "drain":renderScene("drain");break;
+ case "key":state.key=true;renderScene("key");break;
+ case "locker":if(state.key)renderScene("locker");else say("Шафка замкнена. Потрібен ключ із підвалу.");break;
+ case "seal1":if(state.seals<1)state.seals++;state.danger=Math.min(5,state.danger+1);renderScene("hall");say("Печатка 1/3 знайдена. З вентиляції хтось прошепотів твоє ім’я.");break;
+ case "seal2":if(state.seals<2)state.seals++;state.danger=Math.min(5,state.danger+1);renderScene("stairs");say("Печатка 2/3 знайдена. Сходи позаду тебе більше не видно.");break;
+ case "seal3":if(state.seals<3)state.seals++;renderScene("exit");say("Усі три печатки на місці. Двері повільно відчиняються.");break;
+ case "trydoor":if(state.seals>=3)renderScene("exit");else say(`Двері не рухаються. Потрібно ще печаток: ${3-state.seals}.`);break;
+ case "exit":if(state.seals>=3){state.ending=true;renderScene("exit");say("Ти вирвався назовні. На світанку станція здається порожньою…");setTimeout(showScare,800)}else say("Три замки все ще закриті. Знайди всі печатки.");break;
+ case "look":state.ending=true;say("Ти озираєшся. Силует стоїть за кілька сантиметрів від тебе…");setTimeout(showScare,450);break;
+ }
+}
+function showScare(){
+ if(state.scareShown)return;state.scareShown=true;
+ const img=$("scareImage");img.hidden=false;img.onerror=()=>{img.hidden=true};
+ $("overlay").classList.add("show");
+ const audio=$("scareAudio");audio.currentTime=0;audio.play().catch(()=>{});
+ $("closeScare").focus();
+}
+$("closeScare").addEventListener("click",()=>{$("overlay").classList.remove("show");$("scareAudio").pause()});
+renderScene("home");
+$("sceneIcon").textContent="🌑";$("sceneTitle").textContent="Станція мовчить";$("sceneSub").textContent="Ти чуєш три удари з-за зачинених дверей.";
+$("actions").replaceChildren();
+[["hall","🚪 Увійти в коридор"],["desk","🗄️ Обшукати чергову"],["stairs","🪜 Спуститися в підвал"],["listen","👂 Прислухатися"]].forEach(([act,label])=>{const b=document.createElement("button");b.className="choice";b.textContent=label;b.onclick=()=>doAction(act);$("actions").appendChild(b)});
+})();
 </script>
 </body>
 </html>
