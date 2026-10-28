@@ -34,8 +34,9 @@ h1{font-size:13px;color:var(--yellow);letter-spacing:.4px}
 .stat{
   background:var(--panel);border:1px solid var(--border);
   border-radius:4px;padding:4px 6px;
-  display:flex;justify-content:space-between;align-items:center;
+  display:flex;flex-direction:column;gap:2px;
 }
+.stat-top{display:flex;justify-content:space-between;align-items:center}
 .stat b{font-weight:700}
 .screen{
   background:var(--panel);border:1px solid var(--border);
@@ -109,7 +110,8 @@ button:disabled{opacity:.4;pointer-events:none}
 
 <div id="boot">
   <h2>🏛️ УСТАНОВА №31</h2>
-  <p>Ти потрапив у колонію. Виживай, заробляй авторитет, не здохни з голоду і не попади під роздачу.<br><br>Збереження автоматичне.</p>
+  <p>Ти потрапив у колонію. Виживай, заробляй авторитет, не здохни з голоду і не попади під роздачу.<br><br>Збереження автоматичне. У кожного — свій прогрес.</p>
+  <input id="name-in" type="text" maxlength="16" placeholder="Прізвисько (необов'язково)" style="width:80%;background:#161b22;border:1px solid var(--border);color:var(--text);padding:10px;border-radius:5px;font-family:inherit;font-size:12px;margin-bottom:12px;text-align:center">
   <button class="primary" style="width:80%;text-align:center;padding:14px" onclick="startGame(false)">▶ ПРОДОВЖИТИ / НОВА ГРА</button>
   <button class="muted" style="width:80%;text-align:center;margin-top:8px" onclick="startGame(true)">Скинути збереження і почати з нуля</button>
 </div>
@@ -120,8 +122,14 @@ button:disabled{opacity:.4;pointer-events:none}
 </header>
 
 <div class="stats">
-  <div class="stat"><span>❤️</span><b id="s-hp" class="hp-ok">100</b></div>
-  <div class="stat"><span>🍞</span><b id="s-food" style="color:var(--yellow)">80</b></div>
+  <div class="stat">
+    <div class="stat-top"><span>❤️</span><b id="s-hp" class="hp-ok">100</b></div>
+    <div class="bar"><i id="bar-hp" style="width:100%;background:var(--green)"></i></div>
+  </div>
+  <div class="stat">
+    <div class="stat-top"><span>🍞</span><b id="s-food" style="color:var(--yellow)">80</b></div>
+    <div class="bar"><i id="bar-food" style="width:80%;background:var(--yellow)"></i></div>
+  </div>
   <div class="stat"><span>💵</span><b id="s-money" style="color:var(--green)">150</b></div>
   <div class="stat"><span>💪</span><b id="s-str" style="color:var(--blue)">10</b></div>
   <div class="stat"><span>⭐</span><b id="s-auth" style="color:var(--blue)">5</b></div>
@@ -139,7 +147,7 @@ button:disabled{opacity:.4;pointer-events:none}
 <div class="modal" id="modal"><div class="modal-box" id="mbox"></div></div>
 
 <script>
-const SK='u31_full_v3';
+const SK='u31_full_v4';
 const PHASES=['Ранкова перевірка','Промзона / робота','Двір / вільний час','Вечір у бараку','Нічний відбій'];
 const ITEMS={
   cigarettes:{n:'Цигарки',p:35,d:'+1⭐ при використанні'},
@@ -149,16 +157,19 @@ const ITEMS={
   knife:{n:'Заточка',p:110,d:'+6 сили в бою'},
   vodka:{n:'Брага',p:80,d:'+2⭐, −10❤️, +15🍞'},
   paper:{n:'Папір/ручка',p:25,d:'Для маляви'},
-  soap:{n:'Мило',p:20,d:'Трохи ❤️ / обмін'}
+  soap:{n:'Мило',p:20,d:'Трохи ❤️ / обмін'},
+  boots:{n:'Берці',p:90,d:'−2 голоду/день'},
+  radio:{n:'Радіо',p:75,d:'Новини зони'}
 };
 
 let P={
   day:1,phase:0,hp:100,food:80,str:10,auth:5,money:150,
   caste:'Мужик',inv:{},debt:0,fights:0,escapes:0,
-  shizo:0,rep:0,quest:null,flags:{},snd:true,seenTut:false
+  shizo:0,rep:0,quest:null,flags:{},snd:true,seenTut:false,name:''
 };
 
-let actx=null;
+let actx=null;let busy=false;
+function lock(){if(busy)return true;busy=true;setTimeout(()=>busy=false,250);return false}
 function beep(f=440,t=.04,type='square',v=.04){
   if(!P.snd)return;
   try{
@@ -221,9 +232,11 @@ function ui(){
   const hp=document.getElementById('s-hp');
   hp.textContent=P.hp;
   hp.className=P.hp>60?'hp-ok':P.hp>30?'hp-mid':'hp-low';
+  const bhp=document.getElementById('bar-hp');if(bhp){bhp.style.width=P.hp+'%';bhp.style.background=P.hp>60?'var(--green)':P.hp>30?'var(--yellow)':'var(--red)'}
   const fd=document.getElementById('s-food');
   fd.textContent=P.food;
   fd.style.color=P.food>40?'var(--yellow)':'var(--red)';
+  const bf=document.getElementById('bar-food');if(bf){bf.style.width=P.food+'%';bf.style.background=P.food>40?'var(--yellow)':'var(--red)'}
   document.getElementById('s-money').textContent=P.money+(P.debt>0?`/−${P.debt}`:'');
   document.getElementById('s-str').textContent=P.str;
   document.getElementById('s-auth').textContent=P.auth;
@@ -247,6 +260,7 @@ function render(){
     D.textContent=`Ти в штрафному ізоляторі. Залишилось днів: ${P.shizo}. Холодно, голодно, темно.`;
     h+=`<button class="primary" onclick="shizoDay()">Пережити день у ШІЗО</button>`;
     h+=`<button onclick="openInv()">📦 Інвентар</button>`;
+  h+=`<button onclick="openAch()">📊 Статистика</button>`;
     A.innerHTML=h;return;
   }
 
@@ -272,12 +286,14 @@ function render(){
     h+=`<button class="danger" onclick="aFight()">Розборка</button>`;
     h+=`<button class="special" onclick="aGamble()">Карти / кістки</button>`;
     if(P.quest)h+=`<button class="success" onclick="aQuest()">📋 Квест: ${P.quest.t}</button>`;
-    else if(chance(.35)||P.day%3===0)h+=`<button class="success" onclick="aGetQuest()">📋 Пошукати доручення</button>`;
+    else h+=`<button class="success" onclick="aGetQuest()">📋 Пошукати доручення</button>`;
+    if(P.day%7===0)h+=`<button class="success" onclick="aBath()">🛁 Лазня</button>`;
   } else if(P.phase===3){
     L.textContent='БАРАК // ВЕЧІР';
     D.textContent='Чай, маляви, тихі розмови. Завтра знову плац.';
     h+=`<button onclick="aEat()">Поїсти (пакунок / 30💵)</button>`;
     h+=`<button onclick="aLetter()">Написати маляву</button>`;
+    if(inv('radio')>0)h+=`<button class="special" onclick="aRadio()">📻 Радіо</button>`;
     if(P.debt>0)h+=`<button class="danger" onclick="aPayDebt()">Погасити борг (${P.debt}💵)</button>`;
     if(P.day>=6&&P.auth>=10)h+=`<button class="danger" onclick="aEscape()">💀 План втечі</button>`;
     if(P.day>=10&&P.auth>=20&&P.str>=20)h+=`<button class="special" onclick="aThrone()">Спробувати стати «паханом»</button>`;
@@ -296,6 +312,7 @@ function render(){
 }
 
 function next(force){
+  if(lock())return;
   click();
   if(!force && (P.phase===2||P.phase===3)){/* wait for explicit */}
   P.phase++;
@@ -306,7 +323,7 @@ function next(force){
 
 function endDay(){
   P.phase=0;P.day++;
-  P.food=clamp(P.food-16,0,100);
+  let hunger=16;if(inv('boots')>0)hunger=14;P.food=clamp(P.food-hunger,0,100);
   if(P.debt>0){
     const i=Math.ceil(P.debt*.08);
     P.debt+=i;
@@ -640,6 +657,30 @@ function useItem(id){
 }
 
 /* ===== EVENTS ===== */
+
+function aBath(){
+  click();
+  P.hp=clamp(P.hp+12,0,100);
+  if(chance(.3)){P.auth+=1;log('Лазня: +12❤️ +1⭐')}
+  else log('Лазня: +12❤️');
+  toast('+12❤️');P.phase++;goPhase();
+}
+function aRadio(){
+  click();
+  const news=['По зоні чутки про шмон.','На промзоні зривають план.','Хтось пішов по етапу.','Передачі затримують.','У сусідній установі був бунт.'];
+  log('📻 '+news[rnd(0,news.length-1)]);
+  if(chance(.4)){P.auth+=1;toast('+1⭐')} else toast('Новини');
+  ui();
+}
+function openAch(){
+  click();
+  let h='<h3 style="color:var(--yellow)">📊 СТАТИСТИКА</h3>';
+  h+='<p class="tag">Днів: '+P.day+' · Боїв: '+P.fights+' · Втеч: '+P.escapes+' · Борг: '+P.debt+'</p>';
+  h+='<p class="tag">Сила '+P.str+' · Авторитет '+P.auth+' · '+P.caste+'</p>';
+  h+='<button style="margin-top:8px" onclick="closeM()">Закрити</button>';
+  modal(h);
+}
+
 function eventRand(){
   const evs=[
     {t:'🚨 ШМОН',d:'Повний обшук барака.',f:()=>{const l=Math.min(P.money,rnd(25,55));P.money-=l;log(`Шмон −${l}💵`);toast('−'+l)}},
@@ -651,7 +692,10 @@ function eventRand(){
     {t:'🏥 МЕДЧАСТИНА',d:'Можна підлататися за 45💵.',f:()=>{if(P.money>=45&&P.hp<90){P.money-=45;P.hp=clamp(P.hp+25,0,100);log('+25❤️ за 45');toast('+25❤️')}else log('Медик байдужий')}},
     {t:'📢 ЧУТКИ',d:'По зоні пішли розмови.',f:()=>{if(P.auth>=12){P.auth+=1;log('Чутки на твою користь +1⭐')}else log('Ти ще тінь')}},
     {t:'⚔️ НАЇЗД',d:'Хтось шукає конфлікту прямо зараз.',f:()=>{if(P.str+P.auth>25||chance(.4)){P.auth+=1;log('Дав відсіч +1⭐');ok()}else{P.hp=clamp(P.hp-15,0,100);log('Отримав (−15❤️)');bad()}}},
-    {t:'📦 ПЕРЕДАЧА',d:'З волі щось прийшло (або ні).',f:()=>{if(chance(.55)){const m=rnd(40,100);P.money+=m;log(`Передача +${m}💵`);toast('+'+m)}else log('Передачу «загубили»')}}
+    {t:'📦 ПЕРЕДАЧА',d:'З волі щось прийшло (або ні).',f:()=>{if(chance(.55)){const m=rnd(40,100);P.money+=m;log(`Передача +${m}💵`);toast('+'+m)}else log('Передачу «загубили»')}},
+    {t:'🐀 КРИСА',d:'Ходять чутки, що хтось стукає.',f:()=>{if(P.auth>=15){log('Тебе не чіпають.');P.auth+=1}else{P.hp=clamp(P.hp-8,0,100);log('Підозра (−8❤️)');bad()}}},
+    {t:'🍞 ПАЙКА',d:'Зайва пайка зі складу.',f:()=>{P.food=clamp(P.food+20,0,100);log('+20🍞');toast('+20🍞')}},
+    {t:'🔧 ПІДРОБІТОК',d:'Бригадир кличе «своїх».',f:()=>{if(P.str>=15||P.auth>=10){const g=rnd(40,90);P.money+=g;log('Підробіток +'+g);toast('+'+g)}else log('Ти ще не свій')}}
   ];
   const e=evs[rnd(0,evs.length-1)];
   if(e.choice){
@@ -697,6 +741,7 @@ function doReset(){
 function startGame(forceNew){
   if(forceNew)localStorage.removeItem(SK);
   load();
+  const ni=document.getElementById('name-in');if(ni&&ni.value.trim())P.name=ni.value.trim().slice(0,16);
   document.getElementById('boot').style.display='none';
   if(!P.seenTut){
     P.seenTut=true;
@@ -717,6 +762,7 @@ window.openShop=openShop;window.buy=buy;window.openInv=openInv;window.useItem=us
 window.next=next;window.closeM=closeM;window.toggleSnd=toggleSnd;window.doReset=doReset;
 window.evYes=evYes;window.evNo=evNo;window.evDo=evDo;
 window.nightHelp=nightHelp;window.nightSkip=nightSkip;window.startGame=startGame;
+window.aBath=aBath;window.aRadio=aRadio;window.openAch=openAch;
 </script>
 </body>
 </html>
