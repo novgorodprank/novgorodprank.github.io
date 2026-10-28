@@ -154,7 +154,7 @@ button:active { transform: scale(0.98); }
 <body>
 
 <h1>📅 Графік чергувань</h1>
-<p class="sub">Добове кожні 4 дні. Відсипний — наступний день. Якщо чергування у вихідний — ще один вихідний після відсипного.</p>
+<p class="sub">Добове кожні 4 дні. Після добового — відсипний. Субота й неділя завжди вихідні (якщо це не чергування). На рік уперед.</p>
 
 <div class="card">
   <label for="anchor">Дата твого добового чергування</label>
@@ -167,7 +167,7 @@ button:active { transform: scale(0.98); }
     </div>
     <div>
       <label for="months">Показати місяців</label>
-      <input type="number" id="months" value="3" min="1" max="12">
+      <input type="number" id="months" value="12" min="1" max="12">
     </div>
   </div>
 
@@ -177,16 +177,17 @@ button:active { transform: scale(0.98); }
 
 <div class="card rules">
   <b>Правила:</b><br>
-  • Чергування (добове) — кожні <b id="intLabel">4</b> дні від вибраної дати<br>
-  • <b>Будній</b> (пн–пт): наступний день = <span style="color:var(--rest)">відсипний</span><br>
-  • <b>Вихідний</b> (сб–нд): наступний = <span style="color:var(--rest)">відсипний</span>, ще наступний = <span style="color:var(--off)">вихідний</span><br>
-  • Решта днів — звичайні / робочі
+  • Чергування — кожні <b id="intLabel">4</b> дні від вибраної дати<br>
+  • День після чергування = <span style="color:var(--rest)">відсипний</span><br>
+  • <b>Субота і неділя</b> = <span style="color:var(--off)">вихідний</span> (якщо це не добове)<br>
+  • Приклад: <b>чт</b> доб. → <b>пт</b> відс. → <b>сб–нд</b> вих. → <b>пн</b> доб.<br>
+  • Решта будніх — звичайні / робочі
 </div>
 
 <div class="legend">
   <span class="leg"><i class="dot duty"></i> Чергування</span>
   <span class="leg"><i class="dot rest"></i> Відсипний</span>
-  <span class="leg"><i class="dot off"></i> Вихідний після</span>
+  <span class="leg"><i class="dot off"></i> Вихідний</span>
   <span class="leg"><i class="dot work"></i> Звичайний</span>
 </div>
 
@@ -257,47 +258,48 @@ function buildMap(){
   document.getElementById('intLabel').textContent = interval;
 
   anchor = startOfDay(new Date(aStr + 'T12:00:00'));
-  const months = Math.max(1, Math.min(12, +document.getElementById('months').value || 3));
+  const months = Math.max(1, Math.min(12, +document.getElementById('months').value || 12));
 
-  // range: from ~1 month before anchor to months ahead
-  const from = addDays(anchor, -interval * 8);
-  const to = addDays(anchor, months * 31 + 5);
+  const from = addDays(anchor, -interval * 10);
+  const to = addDays(anchor, months * 31 + 7);
 
-  // generate duty days
-  // find first duty <= from by stepping back from anchor
+  // 1) Natural weekends = вихідний
+  for(let cur = new Date(from); cur <= to; cur = addDays(cur, 1)){
+    if(isWeekend(cur)) map.set(key(cur), 'off');
+  }
+
+  // 2) Duty every N days + next day = відсипний
   let d = new Date(anchor);
   while(d > from) d = addDays(d, -interval);
   while(d < from) d = addDays(d, interval);
 
+  const duties = [];
   for(let cur = new Date(d); cur <= to; cur = addDays(cur, interval)){
-    const k = key(cur);
-    map.set(k, 'duty');
+    duties.push(new Date(cur));
+  }
 
-    // next day always rest (відсипний)
+  // rest first (so duty can overwrite if conflict)
+  for(const cur of duties){
     const rest = addDays(cur, 1);
     const rk = key(rest);
-    if(!map.has(rk) || map.get(rk) !== 'duty') map.set(rk, 'rest');
-
-    // if duty on weekend → extra day off after rest
-    if(isWeekend(cur)){
-      const off = addDays(cur, 2);
-      const ok = key(off);
-      if(!map.has(ok) || map.get(ok) === 'work') map.set(ok, 'off');
-      // if rest was overwritten by another duty, still try off
-    }
+    // відсипний even if it was weekend — sleep day is more specific
+    // but if rest is also a duty day, duty wins later
+    map.set(rk, 'rest');
   }
 
-  // conflict: if a day is duty, priority duty over rest/off
-  // already set duty first then rest only if not duty — good
-
-  // if rest day falls on another duty, duty wins (already)
-  // if off falls on duty, duty wins
-  for(const [k,v] of [...map.entries()]){
-    // ensure duties stay duties — re-mark all duties
-  }
-  // re-apply duties to be safe
-  for(let cur = new Date(d); cur <= to; cur = addDays(cur, interval)){
+  // duties overwrite everything
+  for(const cur of duties){
     map.set(key(cur), 'duty');
+  }
+
+  // if weekend duty: day after rest also off when it's a weekday and free
+  // (extra recovery after working the weekend)
+  for(const cur of duties){
+    if(isWeekend(cur)){
+      const extra = addDays(cur, 2);
+      const ek = key(extra);
+      if(map.get(ek) !== 'duty' && map.get(ek) !== 'rest') map.set(ek, 'off');
+    }
   }
 
   viewYear = anchor.getFullYear();
@@ -352,14 +354,15 @@ function renderList(months){
 
   const items = [];
   for(const [k,v] of map.entries()){
-    if(v === 'work') continue;
+    // list: duty + rest only (weekends visible on calendar)
+    if(v !== 'duty' && v !== 'rest') continue;
     const d = startOfDay(new Date(k + 'T12:00:00'));
     if(d < addDays(today, -1) || d > end) continue;
     items.push({ d, k, v });
   }
   items.sort((a,b)=>a.d-b.d);
 
-  const names = { duty: 'Чергування', rest: 'Відсипний', off: 'Вихідний' };
+  const names = { duty: 'Чергування', rest: 'Відсипний', off: 'Вихідний (сб/нд)' };
   let shown = 0;
   for(const it of items){
     if(shown >= 40) break;
