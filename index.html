@@ -319,9 +319,9 @@ function gameOver(reason,win){
   save();
   const box=document.getElementById('mbox');
   box.innerHTML=`
-    <h3 style="color:\( {win?'var(--green)':'var(--red)'}"> \){win?'🏆 КІНЕЦЬ':'💀 КІНЕЦЬ ГРИ'}</h3>
+    <h3 style="color:${win?'var(--green)':'var(--red)'}">${win?'🏆 КІНЕЦЬ':'💀 КІНЕЦЬ ГРИ'}</h3>
     <p>${reason}</p>
-    <p class="tag">Днів: \( {P.day} · ⭐ \){P.auth} · 💪${P.str} · ${P.caste} · Боїв: ${P.fights}</p>
+    <p class="tag">Днів: ${P.day} · ⭐${P.auth} · 💪${P.str} · ${P.caste} · Боїв: ${P.fights}</p>
     <div class="row">
       <button class="primary" style="text-align:center" onclick="localStorage.removeItem('${SK}');location.reload()">Нова гра</button>
     </div>`;
@@ -430,7 +430,7 @@ function fightGo(m){
     if(pow>=enemy){
       const g=rnd(30,80);P.money+=g;P.auth+=2;P.fights++;
       P.hp=clamp(P.hp-rnd(2,10),0,100);
-      log(`Переміг\( {knife?' з заточкою':''}. + \){g}💵 +2⭐`);ok();toast('Перемога');
+      log(`Переміг${knife?' з заточкою':''}. +${g}💵 +2⭐`);ok();toast('Перемога');
     }else{
       P.hp=clamp(P.hp-rnd(18,32),0,100);P.auth=Math.max(-8,P.auth-2);P.fights++;
       log('Програв. Побили.');bad();toast('Поразка');
@@ -589,7 +589,7 @@ function openShop(){
   let h=`<h3 style="color:var(--yellow)">🛒 ЛАРЬОК</h3><p class="tag">Знижка ${Math.round(d*100)}% · Баланс ${P.money}💵</p><div class="row">`;
   for(const[id,it] of Object.entries(ITEMS)){
     const pr=Math.max(5,Math.floor(it.p*(1-d)));
-    h+=`<button onclick="buy('\( {id}', \){pr})">${it.n} — \( {pr}💵<br><span class="tag"> \){it.d}</span></button>`;
+    h+=`<button onclick="buy('${id}',${pr})">${it.n} — ${pr}💵<br><span class="tag">${it.d}</span></button>`;
   }
   h+=`<button onclick="closeM()">Закрити</button></div>`;
   modal(h);
@@ -609,7 +609,7 @@ function openInv(){
   if(!keys.length)h+=`<p class="tag">Порожньо</p>`;
   else keys.forEach(id=>{
     const it=ITEMS[id]||{n:id,d:''};
-    h+=`<div class="inv-row"><div><b>\( {it.n}</b> × \){P.inv[id]}<div class="tag">${it.d||''}</div></div>
+    h+=`<div class="inv-row"><div><b>${it.n}</b> ×${P.inv[id]}<div class="tag">${it.d||''}</div></div>
       <button style="width:auto;padding:6px 10px" onclick="useItem('${id}')">Юз</button></div>`;
   });
   h+=`<button style="margin-top:8px" onclick="closeM()">Закрити</button>`;
