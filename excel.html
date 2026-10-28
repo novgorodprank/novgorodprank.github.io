@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0f1a12">
+<title>Excel — формули</title>
+<style>
+:root {
+  --bg: #0f1a12;
+  --panel: #152318;
+  --border: #2d4a35;
+  --text: #e8f0ea;
+  --muted: #8fa894;
+  --accent: #3dd68c;
+  --blue: #6cb6ff;
+  --code: #1a2e22;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 14px 12px 48px;
+  line-height: 1.45;
+}
+h1 { font-size: 20px; margin-bottom: 4px; color: var(--accent); }
+.sub { font-size: 13px; color: var(--muted); margin-bottom: 14px; }
+.search {
+  width: 100%;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 12px 14px;
+  font-size: 15px;
+  margin-bottom: 12px;
+  font-family: inherit;
+}
+.tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 14px;
+}
+.tab {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 7px 12px;
+  font-size: 12px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.tab.on, .tab:active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+.how {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.how b { color: var(--text); }
+.how ol { margin: 8px 0 0 18px; }
+.how li { margin-bottom: 4px; }
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 12px 14px;
+  margin-bottom: 10px;
+}
+.card h3 { font-size: 14px; margin-bottom: 4px; color: var(--blue); }
+.card .desc { font-size: 12px; color: var(--muted); margin-bottom: 8px; }
+.code {
+  background: var(--code);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+  font-size: 13px;
+  color: var(--accent);
+  word-break: break-all;
+  position: relative;
+  margin-bottom: 6px;
+}
+.copy {
+  position: absolute;
+  top: 6px; right: 6px;
+  background: #243830;
+  border: 1px solid var(--border);
+  color: var(--muted);
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 11px;
+  cursor: pointer;
+  font-family: inherit;
+}
+.ex { font-size: 12px; color: var(--muted); }
+.ex b { color: var(--text); font-weight: 600; }
+.hidden { display: none; }
+.toast {
+  position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
+  background: #1a3d2a; border: 1px solid var(--accent); color: var(--accent);
+  padding: 8px 16px; border-radius: 8px; font-size: 13px;
+  opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 99;
+}
+.toast.show { opacity: 1; }
+</style>
+</head>
+<body>
+
+<h1>📊 Excel — путівник формул</h1>
+<p class="sub">Обери категорію або шукай. Натисни на формулу — скопіюється. Далі в чаті можна написати задачу — підберу точну формулу.</p>
+
+<input class="search" id="q" type="search" placeholder="Пошук: сума, ВПР, дата, якщо..." autocomplete="off">
+
+<div class="how">
+  <b>Як вставити формулу</b>
+  <ol>
+    <li>Клікни клітинку, де має бути результат</li>
+    <li>Почни з <b>=</b> (обов’язково)</li>
+    <li>Встав формулу (або напиши) і натисни <b>Enter</b></li>
+    <li>У формулах українського Excel: <b>СУММ→СУМА</b>, <b>IF→ЯКЩО</b>, <b>VLOOKUP→ВПР</b> (залежить від мови)</li>
+    <li>Розтягни за квадратик справа внизу клітинки — скопіює формулу вниз</li>
+  </ol>
+</div>
+
+<div class="tabs" id="tabs"></div>
+<div id="list"></div>
+<div class="toast" id="toast">Скопійовано</div>
+
+<script>
+const F = [
+  // SUM / stats
+  {cat:'Сума і числа', name:'СУМА', q:'сума sum сумма додати',
+    f:'=СУМА(A1:A10)', d:'Додає всі числа в діапазоні',
+    ex:'Сумує A1–A10'},
+  {cat:'Сума і числа', name:'СУМА з умовою', q:'sumif сумесли умовна сума',
+    f:'=SUMIF(A:A;"Київ";B:B)', d:'Сума в B, де в A = «Київ». Укр: СУМЕСЛИ',
+    ex:'Продажі лише по Києву'},
+  {cat:'Сума і числа', name:'СУМА з кількома умовами', q:'sumifs сумеслимн',
+    f:'=SUMIFS(C:C;A:A;"Київ";B:B;">=100")', d:'Сума C, якщо A=Київ і B≥100. Укр: СУМЕСЛИМН',
+    ex:'Кілька фільтрів'},
+  {cat:'Сума і числа', name:'СЕРЕДНЄ', q:'average середнє середнє',
+    f:'=AVERAGE(A1:A10)', d:'Середнє арифметичне. Укр: СРЗНАЧ',
+    ex:'Середній бал / чек'},
+  {cat:'Сума і числа', name:'МІН / МАКС', q:'min max мінімум максимум',
+    f:'=MIN(A1:A10)\n=MAX(A1:A10)', d:'Найменше / найбільше. Укр: МИН, МАКС',
+    ex:''},
+  {cat:'Сума і числа', name:'ЛІЧБА чисел', q:'count counta кількість',
+    f:'=COUNT(A1:A10)', d:'Скільки клітинок з числами. Укр: СЧЁТ / РАХУНОК',
+    ex:'=COUNTA(A:A) — усі непорожні'},
+  {cat:'Сума і числа', name:'ОКРУГЛ', q:'round округлити',
+    f:'=ROUND(A1;2)', d:'Округлення до 2 знаків. Укр: ОКРУГЛ',
+    ex:'=ROUNDUP(A1;0) вгору, ROUNDDOWN вниз'},
+
+  // IF logic
+  {cat:'Умови', name:'ЯКЩО', q:'if якщо условие',
+    f:'=IF(A1>=60;"Здав";"Не здав")', d:'Якщо умова — значення1, інакше значення2. Укр: ЕСЛИ / ЯКЩО',
+    ex:'Перевірка порогу'},
+  {cat:'Умови', name:'ЯКЩО + І / АБО', q:'and or і або',
+    f:'=IF(AND(A1>=50;B1>=50);"OK";"Ні")', d:'І — обидві умови, OR — хоча б одна. Укр: И, ИЛИ',
+    ex:'=IF(OR(A1="";B1="");"Порожньо";A1+B1)'},
+  {cat:'Умови', name:'Вкладений ЯКЩО', q:'nested if кілька',
+    f:'=IF(A1>=90;"A";IF(A1>=75;"B";IF(A1>=60;"C";"D")))', d:'Кілька рівнів оцінки',
+    ex:''},
+  {cat:'Умови', name:'ЯКЩОПОМИЛКА', q:'iferror помилка',
+    f:'=IFERROR(A1/B1;0)', d:'Якщо помилка — показати 0 (або текст). Укр: ЕСЛИОШИБКА',
+    ex:'Ділення на нуль не «ломає» таблицю'},
+
+  // Lookup
+  {cat:'Пошук', name:'ВПР (VLOOKUP)', q:'vlookup впр поиск',
+    f:'=VLOOKUP(E2;A:C;3;FALSE)', d:'Шукає E2 у лівому стовпці A:C, повертає 3-й стовпець. Укр: ВПР\nFALSE = точний збіг',
+    ex:'Підтягнути ціну по коду товару'},
+  {cat:'Пошук', name:'ПРОСМОТРX (XLOOKUP)', q:'xlookup просмотрx сучасний',
+    f:'=XLOOKUP(E2;A:A;C:C;"Немає")', d:'Сучасніша за VLOOKUP (Excel 365/2021)',
+    ex:'Шукає в A, повертає з C'},
+  {cat:'Пошук', name:'ИНДЕКС + ПОИСКПОЗ', q:'index match индекс',
+    f:'=INDEX(C:C;MATCH(E2;A:A;0))', d:'Гнучкий пошук. Укр: ИНДЕКС, ПОИСКПОЗ',
+    ex:'Коли VLOOKUP незручний'},
+  {cat:'Пошук', name:'УНИКАЛЬНЫЕ', q:'unique унікальні',
+    f:'=UNIQUE(A2:A100)', d:'Список без повторів (Excel 365). Укр: УНИК',
+    ex:'Унікальні клієнти'},
+
+  // Text
+  {cat:'Текст', name:'ЗЧЕПИТИ / &', q:'concatenate зчепити текст склеить',
+    f:'=A1&" "&B1', d:'Склеїти текст. Або =CONCAT(A1;" ";B1)',
+    ex:'Ім\'я + прізвище'},
+  {cat:'Текст', name:'ЛІВБМ / ПРАВБМ', q:'left right левсимв',
+    f:'=LEFT(A1;3)\n=RIGHT(A1;4)', d:'Перші / останні символи. Укр: ЛЕВСИМВ, ПРАВСИМВ',
+    ex:'Код з рядка'},
+  {cat:'Текст', name:'ДЛСТР / ДЛИН', q:'len довжина',
+    f:'=LEN(A1)', d:'Кількість символів. Укр: ДЛСТР',
+    ex:''},
+  {cat:'Текст', name:'ПРОПИСН / СТРОЧН', q:'upper lower регістр',
+    f:'=UPPER(A1)\n=LOWER(A1)\n=PROPER(A1)', d:'ВЕЛИКІ / маленькі / Як Імена. Укр: ПРОПИСН, СТРОЧН, ПРОПНАЧ',
+    ex:''},
+  {cat:'Текст', name:'ОБРЕЗАТЬ / TRIM', q:'trim пробелы обрізати',
+    f:'=TRIM(A1)', d:'Прибрати зайві пробіли. Укр: СЖПРОБЕЛЫ',
+    ex:''},
+  {cat:'Текст', name:'ПІДСТАВИТИ', q:'substitute replace замінити',
+    f:'=SUBSTITUTE(A1;" ";"")', d:'Замінити фрагмент тексту. Укр: ПОДСТАВИТЬ',
+    ex:'Прибрати пробіли всередині'},
+
+  // Dates
+  {cat:'Дати', name:'СЬОГОДНІ / ЗАРАЗ', q:'today now сьогодні',
+    f:'=TODAY()\n=NOW()', d:'Поточна дата / дата+час. Укр: СЕГОДНЯ, ТДАТА',
+    ex:''},
+  {cat:'Дати', name:'Різниця дат', q:'datedif днів між',
+    f:'=B1-A1', d:'Кількість днів між датами (формат «Число»)',
+    ex:'=DATEDIF(A1;B1;"Y") — повні роки'},
+  {cat:'Дати', name:'ДЕНЬ / МІСЯЦЬ / РІК', q:'day month year',
+    f:'=DAY(A1)\n=MONTH(A1)\n=YEAR(A1)', d:'Витягнути частину дати. Укр: ДЕНЬ, МЕСЯЦ, ГОД',
+    ex:''},
+  {cat:'Дати', name:'Дата з частин', q:'date зібрати',
+    f:'=DATE(2026;10;29)', d:'Зібрати дату з рік;місяць;день. Укр: ДАТА',
+    ex:''},
+  {cat:'Дати', name:'РОБДЕНЬ', q:'workday робочий день',
+    f:'=WORKDAY(A1;3)', d:'Дата через 3 робочі дні. Укр: РАБДЕНЬ',
+    ex:'Дедлайн без вихідних'},
+  {cat:'Дати', name:'МІСЯЦЬ + N', q:'edate додати місяць',
+    f:'=EDATE(A1;1)', d:'Та сама дата + 1 місяць. Укр: ДАТАМЕС',
+    ex:'Підписка щомісяця'},
+
+  // Tables practical
+  {cat:'Практичні', name:'% від числа', q:'відсоток percent',
+    f:'=B1/A1', d:'Потім формат клітинки → Відсотки',
+    ex:'Виконання плану: факт/план'},
+  {cat:'Практичні', name:'Зростання %', q:'приріст динаміка',
+    f:'=(B1-A1)/A1', d:'На скільки % виросло від A до B',
+    ex:''},
+  {cat:'Практичні', name:'ПДВ 20%', q:'ндс vat',
+    f:'=A1*1,2', d:'Ціна з ПДВ (укр. Excel: кома)',
+    ex:'=A1/1,2 — витягнути без ПДВ'},
+  {cat:'Практичні', name:'Прогресивна знижка', q:'знижка скидка',
+    f:'=IF(A1>=1000;A1*0,9;IF(A1>=500;A1*0,95;A1))', d:'Від 1000 → −10%, від 500 → −5%',
+    ex:''},
+  {cat:'Практичні', name:'Борг / залишок', q:'борг остаток',
+    f:'=A1-B1', d:'Нараховано − сплачено',
+    ex:'Краще: =IFERROR(A1-B1;0)'},
+  {cat:'Практичні', name:'Підрахунок «Так»', q:'countif порахувати',
+    f:'=COUNTIF(A:A;"Так")', d:'Скільки разів «Так». Укр: СЧЁТЕСЛИ',
+    ex:'=COUNTIF(A:A;">0")'},
+  {cat:'Практичні', name:'Випадкове число', q:'rand між',
+    f:'=RANDBETWEEN(1;100)', d:'Ціле від 1 до 100. Укр: СЛУЧМЕЖДУ',
+    ex:'Оновлюється при кожній зміні листа'},
+  {cat:'Практичні', name:'Перевірка дублікатів', q:'дублікат duplicate',
+    f:'=COUNTIF($A$2:$A$100;A2)>1', d:'TRUE якщо значення вже є в списку',
+    ex:'Умовне форматування → підсвітити дублі'},
+];
+
+const cats = [...new Set(F.map(x => x.cat))];
+let activeCat = 'Усі';
+
+function toast(m){
+  const t = document.getElementById('toast');
+  t.textContent = m || 'Скопійовано';
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1400);
+}
+
+function copyText(text){
+  navigator.clipboard.writeText(text.split('\n')[0]).then(() => toast()).catch(() => {
+    const ta = document.createElement('textarea');
+    ta.value = text.split('\n')[0];
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    toast();
+  });
+}
+
+function renderTabs(){
+  const el = document.getElementById('tabs');
+  el.innerHTML = '';
+  ['Усі', ...cats].forEach(c => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'tab' + (c === activeCat ? ' on' : '');
+    b.textContent = c;
+    b.onclick = () => { activeCat = c; renderTabs(); render(); };
+    el.appendChild(b);
+  });
+}
+
+function render(){
+  const q = (document.getElementById('q').value || '').trim().toLowerCase();
+  const list = document.getElementById('list');
+  list.innerHTML = '';
+  const items = F.filter(x => {
+    if(activeCat !== 'Усі' && x.cat !== activeCat) return false;
+    if(!q) return true;
+    const hay = (x.name + ' ' + x.q + ' ' + x.d + ' ' + x.f).toLowerCase();
+    return q.split(/\s+/).every(w => hay.includes(w));
+  });
+  if(!items.length){
+    list.innerHTML = '<div class="card"><div class="desc">Нічого не знайдено. Спробуй інше слово або напиши задачу в чат.</div></div>';
+    return;
+  }
+  items.forEach(x => {
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML =
+      '<h3>' + x.name + '</h3>' +
+      '<div class="desc">' + x.d + '</div>' +
+      '<div class="code" data-f="' + encodeURIComponent(x.f) + '">' +
+        x.f.replace(/\n/g, '<br>') +
+        '<button type="button" class="copy">Копіювати</button>' +
+      '</div>' +
+      (x.ex ? '<div class="ex">Приклад: <b>' + x.ex + '</b></div>' : '');
+    card.querySelector('.copy').onclick = (e) => {
+      e.stopPropagation();
+      copyText(x.f);
+    };
+    card.querySelector('.code').onclick = () => copyText(x.f);
+    list.appendChild(card);
+  });
+}
+
+document.getElementById('q').addEventListener('input', render);
+renderTabs();
+render();
+</script>
+</body>
+</html>
