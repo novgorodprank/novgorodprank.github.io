@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>УСТАНОВА №31: ХРОНІКИ ВИЖИВАННЯ</title>
+    <title>УСТАНОВА №31: ЕВОЛЮЦІЯ</title>
     <style>
         :root {
-            --bg: #090d16;
+            --bg: #07090f;
             --panel: #0d1117;
             --border: #30363d;
             --text: #c9d1d9;
@@ -32,7 +32,7 @@
 
         header {
             background: var(--panel);
-            border: 2px solid var(--border);
+            border: 2px solid var(--blue);
             padding: 10px;
             border-radius: 6px;
             margin-bottom: 8px;
@@ -95,278 +95,7 @@
             background: #161b22;
             color: var(--text);
             border: 1px solid var(--border);
-            padding: 11px;
-            text-align: left;
-            font-family: inherit;
-            font-size: 12px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: 0.1s;
-        }
-
-        button:active { background: #30363d; border-color: var(--blue); }
-        button.primary { border-color: var(--blue); color: var(--blue); }
-        button.danger { border-color: var(--accent); color: var(--accent); }
-        button.special { border-color: var(--purple); color: var(--purple); }
-
-        .log-box {
-            font-size: 10px;
-            color: #8b949e;
-            background: #010409;
-            padding: 8px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            height: 65px;
-            overflow-y: auto;
-        }
-
-        /* Модальне вікно для івентів та ринку */
-        .modal {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 5000;
-            padding: 15px;
-        }
-        .modal-content {
-            background: var(--panel);
-            border: 2px solid var(--yellow);
-            padding: 15px;
-            width: 100%;
-            max-width: 380px;
-            border-radius: 8px;
-        }
-    </style>
-</head>
-<body>
-
-    <header>
-        <h1>🏛️ УСТАНОВА №31 // ДЕНЬ <span id="day-num">1</span></h1>
-        <div id="time-phase" style="font-size:11px; color: var(--yellow); margin-top:2px;">Етап: Ранковий підйом</div>
-    </header>
-
-    <div class="stats-grid">
-        <div class="stat-box">❤️ ЗДОРОВ'Я: <span id="stat-hp" style="color:var(--green)">100%</span></div>
-        <div class="stat-box">🍞 СИТТІСТЬ: <span id="stat-food" style="color:var(--yellow)">80%</span></div>
-        <div class="stat-box">💪 СИЛА: <span id="stat-str" style="color:var(--blue)">10</span></div>
-        <div class="stat-box">⭐ АВТОРИТЕТ: <span id="stat-auth" style="color:var(--blue)">5</span></div>
-        <div class="stat-box">👁️ ПАРАНОЯ: <span id="stat-paranoia" style="color:var(--purple)">0%</span></div>
-        <div class="stat-box">💵 КУПОНИ: <span id="stat-money" style="color:var(--green)">150 грн</span></div>
-    </div>
-
-    <div class="screen">
-        <div class="location-title" id="loc-name">КАМЕРА №31</div>
-        <div class="description" id="loc-desc">Сталеві ліжка, бетонна підлога. Залізні двері зачинені на засув. Починається новий день у виправній колонії.</div>
-        
-        <div class="actions-grid" id="actions-box"></div>
-    </div>
-
-    <div class="log-box" id="game-log">
-        [Система] Ви прибули в установу №31. Дотримуйтесь режиму та будуйте свої правила.<br>
-    </div>
-
-    <!-- Модальне вікно -->
-    <div id="modal-overlay" class="modal">
-        <div class="modal-content" id="modal-body"></div>
-    </div>
-
-    <script>
-        let p = {
-            day: 1,
-            phase: 0, // 0: Ранок, 1: Робота, 2: Двір/Ринок, 3: Вечір, 4: Ніч
-            hp: 100,
-            food: 80,
-            str: 10,
-            auth: 5,
-            paranoia: 0,
-            money: 150,
-            inventory: [],
-            hasPhone: false,
-            hasTea: false
-        };
-
-        const phases = [
-            "Ранковий підйом та перевірка",
-            "Виробнича зміна (промзона)",
-            "Вільний час та тюремний двір",
-            "Вечірня перевірка та збори",
-            "Нічний відбій"
-        ];
-
-        let audioCtx = null;
-        function playClick() {
-            try {
-                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                let osc = audioCtx.createOscillator();
-                let g = audioCtx.createGain();
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(500, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.03);
-                g.gain.setValueAtTime(0.04, audioCtx.currentTime);
-                g.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
-                osc.connect(g); g.connect(audioCtx.destination);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.03);
-            } catch(e){}
-        }
-
-        function log(msg) {
-            const box = document.getElementById('game-log');
-            box.innerHTML += `[День ${p.day}] ${msg}<br>`;
-            box.scrollTop = box.scrollHeight;
-        }
-
-        function updateUI() {
-            document.getElementById('day-num').innerText = p.day;
-            document.getElementById('time-phase').innerText = "Етап: " + phases[p.phase];
-            document.getElementById('stat-hp').innerText = p.hp + '%';
-            document.getElementById('stat-food').innerText = p.food + '%';
-            document.getElementById('stat-str').innerText = p.str;
-            document.getElementById('stat-auth').innerText = p.auth;
-            document.getElementById('stat-paranoia').innerText = p.paranoia + '%';
-            document.getElementById('stat-money').innerText = p.money + ' грн';
-
-            renderActions();
-        }
-
-        function renderActions() {
-            const box = document.getElementById('actions-box');
-            box.innerHTML = '';
-
-            if (p.phase === 0) {
-                document.getElementById('loc-name').innerText = "ПЛАЦ // РАНКОВИЙ ПІДЙОМ";
-                document.getElementById('loc-desc').innerText = "Бригада шикується на холодну перевірку. Наглядачі суворо дивляться на кожного ув'язненого.";
-                
-                box.innerHTML = `
-                    <button onclick="nextPhase()">Вистояти перевірку у загальному строю</button>
-                    <button class="primary" onclick="bribeGuardMorning()">Дати хабар наглядачу (-40 грн, -10 параної)</button>
-                `;
-            } else if (p.phase === 1) {
-                document.getElementById('loc-name').innerText = "ПРОМЗОНА // ВИРОБНИЦТВО";
-                document.getElementById('loc-desc').innerText = "Цехи з металообробки. Час відпрацювати зміну або спробувати схалтурити заради особистих цілей.";
-                
-                box.innerHTML = `
-                    <button onclick="doWork()">Відпрацювати зміну (+50 грн, -20 ситості)</button>
-                    <button onclick="goToGym()">Піти у саморобний спортзал (+3 сили, -15 ситості)</button>
-                    <button class="special" onclick="smuggleItem()">Спробувати пронести контрабанду на цеху</button>
-                `;
-            } else if (p.phase === 2) {
-                document.getElementById('loc-name').innerText = "ЛОКАЛЬНИЙ СЕКТОР // ДВІР";
-                document.getElementById('loc-desc').innerText = "Можна вийти на прогулянку, відвідати тюремний ларек або зустрітися з іншими ув'язненими для вирішення питань.";
-                
-                box.innerHTML = `
-                    <button onclick="openBlackMarket()">Відвідати чорний ринок / ларек</button>
-                    <button onclick="talkToInmates()">Потонікувати з авторитетами камери (+2 авторитету)</button>
-                    <button onclick="searchYard()">Шукати тайники у дворі</button>
-                    <button class="primary" onclick="nextPhase()">Перейти до вечірнього часу</button>
-                `;
-            } else if (p.phase === 3) {
-                document.getElementById('loc-name').innerText = "БАРАК // ВЕЧІРНІЙ ЗБІР";
-                document.getElementById('loc-desc').innerText = "Наближається відбій. Час підбити підсумки дня та пере
-
-cd ~/prank
-
-cat << 'EOF' > index.html
-<!DOCTYPE html>
-<html lang="uk">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>УСТАНОВА №31: ХРОНІКИ ВИЖИВАННЯ</title>
-    <style>
-        :root {
-            --bg: #090d16;
-            --panel: #0d1117;
-            --border: #30363d;
-            --text: #c9d1d9;
-            --accent: #f85149;
-            --green: #2ea043;
-            --yellow: #db6d28;
-            --blue: #58a6ff;
-            --purple: #bc8cff;
-        }
-
-        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
-
-        body {
-            margin: 0;
-            padding: 10px;
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: 'Courier New', Courier, monospace;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        header {
-            background: var(--panel);
-            border: 2px solid var(--border);
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            text-align: center;
-        }
-
-        h1 { margin: 0; font-size: 15px; color: var(--yellow); text-transform: uppercase; }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 5px;
-            margin-bottom: 8px;
-            font-size: 11px;
-        }
-
-        .stat-box {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            padding: 5px 8px;
-            border-radius: 4px;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .screen {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 6px;
             padding: 12px;
-            margin-bottom: 8px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .location-title {
-            font-size: 13px;
-            color: var(--blue);
-            margin-bottom: 6px;
-            border-bottom: 1px dashed var(--border);
-            padding-bottom: 4px;
-            text-transform: uppercase;
-        }
-
-        .description {
-            font-size: 12px;
-            line-height: 1.4;
-            margin-bottom: 10px;
-            flex: 1;
-        }
-
-        .actions-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        button {
-            background: #161b22;
-            color: var(--text);
-            border: 1px solid var(--border);
-            padding: 11px;
             text-align: left;
             font-family: inherit;
             font-size: 12px;
@@ -387,11 +116,10 @@ cat << 'EOF' > index.html
             padding: 8px;
             border: 1px solid var(--border);
             border-radius: 6px;
-            height: 65px;
+            height: 70px;
             overflow-y: auto;
         }
 
-        /* Модальне вікно для івентів та ринку */
         .modal {
             position: fixed;
             top: 0; left: 0; width: 100%; height: 100%;
@@ -416,7 +144,7 @@ cat << 'EOF' > index.html
 
     <header>
         <h1>🏛️ УСТАНОВА №31 // ДЕНЬ <span id="day-num">1</span></h1>
-        <div id="time-phase" style="font-size:11px; color: var(--yellow); margin-top:2px;">Етап: Ранковий підйом</div>
+        <div id="time-phase" style="font-size:11px; color: var(--yellow); margin-top:2px;">Етап: Підйом та перевірка</div>
     </header>
 
     <div class="stats-grid">
@@ -424,22 +152,23 @@ cat << 'EOF' > index.html
         <div class="stat-box">🍞 СИТТІСТЬ: <span id="stat-food" style="color:var(--yellow)">80%</span></div>
         <div class="stat-box">💪 СИЛА: <span id="stat-str" style="color:var(--blue)">10</span></div>
         <div class="stat-box">⭐ АВТОРИТЕТ: <span id="stat-auth" style="color:var(--blue)">5</span></div>
-        <div class="stat-box">👁️ ПАРАНОЯ: <span id="stat-paranoia" style="color:var(--purple)">0%</span></div>
+        <div class="stat-box">🛡️ СТАТУС: <span id="stat-caste" style="color:var(--purple)">Мужик</span></div>
         <div class="stat-box">💵 КУПОНИ: <span id="stat-money" style="color:var(--green)">150 грн</span></div>
     </div>
 
     <div class="screen">
         <div class="location-title" id="loc-name">КАМЕРА №31</div>
-        <div class="description" id="loc-desc">Сталеві ліжка, бетонна підлога. Залізні двері зачинені на засув. Починається новий день у виправній колонії.</div>
+        <div class="description" id="loc-desc">Завантаження ігрового процесу... Якщо ви бачите цей текст, гра ініціалізується.</div>
         
-        <div class="actions-grid" id="actions-box"></div>
+        <div class="actions-grid" id="actions-box">
+            <!-- Кнопки генеруються скриптом -->
+        </div>
     </div>
 
     <div class="log-box" id="game-log">
-        [Система] Ви прибули в установу №31. Дотримуйтесь режиму та будуйте свої правила.<br>
+        [Система] Двигун гри активовано. Установа №31 відкрита для виживання.<br>
     </div>
 
-    <!-- Модальне вікно -->
     <div id="modal-overlay" class="modal">
         <div class="modal-content" id="modal-body"></div>
     </div>
@@ -447,23 +176,21 @@ cat << 'EOF' > index.html
     <script>
         let p = {
             day: 1,
-            phase: 0, // 0: Ранок, 1: Робота, 2: Двір/Ринок, 3: Вечір, 4: Ніч
+            phase: 0, // 0: Ранок, 1: Промзона/Робота, 2: Двір/Ринок, 3: Вечір, 4: Ніч
             hp: 100,
             food: 80,
             str: 10,
             auth: 5,
-            paranoia: 0,
             money: 150,
-            inventory: [],
-            hasPhone: false,
-            hasTea: false
+            caste: "Мужик",
+            inventory: []
         };
 
         const phases = [
-            "Ранковий підйом та перевірка",
-            "Виробнича зміна (промзона)",
-            "Вільний час та тюремний двір",
-            "Вечірня перевірка та збори",
+            "Ранкова перевірка на плацу",
+            "Виробнича зміна на промзоні",
+            "Вільний час / Тюремний двір",
+            "Вечірній збір у бараку",
             "Нічний відбій"
         ];
 
@@ -474,12 +201,12 @@ cat << 'EOF' > index.html
                 let osc = audioCtx.createOscillator();
                 let g = audioCtx.createGain();
                 osc.type = 'square';
-                osc.frequency.setValueAtTime(500, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(150, audioCtx.currentTime + 0.03);
-                g.gain.setValueAtTime(0.04, audioCtx.currentTime);
-                g.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.03);
+                osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.04);
+                g.gain.setValueAtTime(0.05, audioCtx.currentTime);
+                g.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
                 osc.connect(g); g.connect(audioCtx.destination);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.03);
+                osc.start(); osc.stop(audioCtx.currentTime + 0.04);
             } catch(e){}
         }
 
@@ -496,7 +223,7 @@ cat << 'EOF' > index.html
             document.getElementById('stat-food').innerText = p.food + '%';
             document.getElementById('stat-str').innerText = p.str;
             document.getElementById('stat-auth').innerText = p.auth;
-            document.getElementById('stat-paranoia').innerText = p.paranoia + '%';
+            document.getElementById('stat-caste').innerText = p.caste;
             document.getElementById('stat-money').innerText = p.money + ' грн';
 
             renderActions();
@@ -507,43 +234,43 @@ cat << 'EOF' > index.html
             box.innerHTML = '';
 
             if (p.phase === 0) {
-                document.getElementById('loc-name').innerText = "ПЛАЦ // РАНКОВИЙ ПІДЙОМ";
-                document.getElementById('loc-desc').innerText = "Бригада шикується на холодну перевірку. Наглядачі суворо дивляться на кожного ув'язненого.";
+                document.getElementById('loc-name').innerText = "ПЛАЦ // РАНКОВА ПЕРЕВІРКА";
+                document.getElementById('loc-desc').innerText = "Бригада застигла у холодній шерензі. Наглядачі суворо перераховують ув'язнених.";
                 
                 box.innerHTML = `
                     <button onclick="nextPhase()">Вистояти перевірку у загальному строю</button>
-                    <button class="primary" onclick="bribeGuardMorning()">Дати хабар наглядачу (-40 грн, -10 параної)</button>
+                    <button class="primary" onclick="bribeGuard()">Дати хабар наглядачам (-35 грн)</button>
                 `;
             } else if (p.phase === 1) {
-                document.getElementById('loc-name').innerText = "ПРОМЗОНА // ВИРОБНИЦТВО";
-                document.getElementById('loc-desc').innerText = "Цехи з металообробки. Час відпрацювати зміну або спробувати схалтурити заради особистих цілей.";
+                document.getElementById('loc-name').innerText = "ПРОМЗОНА // ЦЕХ ВЕРИФІКАЦІЇ";
+                document.getElementById('loc-desc').innerText = "Виробничі приміщення установи. Можна сумлінно працювати або витратити час на зміцнення м'язів та зв'язки.";
                 
                 box.innerHTML = `
-                    <button onclick="doWork()">Відпрацювати зміну (+50 грн, -20 ситості)</button>
-                    <button onclick="goToGym()">Піти у саморобний спортзал (+3 сили, -15 ситості)</button>
-                    <button class="special" onclick="smuggleItem()">Спробувати пронести контрабанду на цеху</button>
+                    <button onclick="doWork()">Працювати на виробництві (+60 грн, -20 ситості)</button>
+                    <button onclick="goToGym()">Тренуватися на брусах (+3 сили, -15 ситості)</button>
+                    <button class="special" onclick="blackMarketDeal()">Пошукати нелегальний заробіток у цеху</button>
                 `;
             } else if (p.phase === 2) {
                 document.getElementById('loc-name').innerText = "ЛОКАЛЬНИЙ СЕКТОР // ДВІР";
-                document.getElementById('loc-desc').innerText = "Можна вийти на прогулянку, відвідати тюремний ларек або зустрітися з іншими ув'язненими для вирішення питань.";
+                document.getElementById('loc-desc').innerText = "Час прогулянки. Відкриті двері тюремного ларка, на лавках збираються арештанти для обговорення новин.";
                 
                 box.innerHTML = `
-                    <button onclick="openBlackMarket()">Відвідати чорний ринок / ларек</button>
-                    <button onclick="talkToInmates()">Потонікувати з авторитетами камери (+2 авторитету)</button>
-                    <button onclick="searchYard()">Шукати тайники у дворі</button>
+                    <button onclick="openStore()">Відвідати тюремний ларек / їдальню</button>
+                    <button onclick="talkToBosses()">Обговорити питання з «авторитетами» (+2 авторитету)</button>
+                    <button onclick="searchYardCaches()">Шукати схрони та заначки у дворі</button>
                     <button class="primary" onclick="nextPhase()">Перейти до вечірнього часу</button>
                 `;
             } else if (p.phase === 3) {
                 document.getElementById('loc-name').innerText = "БАРАК // ВЕЧІРНІЙ ЗБІР";
-                document.getElementById('loc-desc').innerText = "Наближається відбій. Час підбити підсумки дня та перевірити свої схрони.";
+                document.getElementById('loc-desc').innerText = "Сонце сідає за бетонні паркани з колючим дротом. У бараку готують вечірній чай і діляться тюремними історіями.";
                 
                 box.innerHTML = `
-                    <button onclick="eatFood()">Перекусити у камері (+25 ситості)</button>
+                    <button onclick="eatInCell()">Перекусити у камері пакунком (-30 грн, +30 ситості)</button>
                     <button class="primary" onclick="nextPhase()">Готуватися до нічного відбою</button>
                 `;
             } else if (p.phase === 4) {
                 document.getElementById('loc-name').innerText = "КАМЕРА // НІЧНИЙ ВІДБІЙ";
-                document.getElementById('loc-desc').innerText = "Світло вимкнено. У темряві чути луну кроків чергового на коридорі та тривожне шепотіння.";
+                document.getElementById('loc-desc').innerText = "Відбій. Усі вогні приглушені. Час повноцінно відпочити та відновити сили після важкого тюремного дня.";
                 
                 box.innerHTML = `
                     <button class="primary" onclick="sleepNight()">Лягти спати до ранку</button>
@@ -554,10 +281,10 @@ cat << 'EOF' > index.html
         function nextPhase() {
             playClick();
             p.phase++;
-            
-            // Рандомний івент між фазами
-            if (Math.random() < 0.35 && p.phase < 4) {
-                triggerRandomEvent();
+
+            // Шанс на випадкову подію
+            if (Math.random() < 0.3 && p.phase < 4) {
+                triggerEvent();
                 return;
             }
 
@@ -565,12 +292,16 @@ cat << 'EOF' > index.html
                 p.phase = 0;
                 p.day++;
                 p.food -= 20;
-                p.paranoia = Math.max(0, p.paranoia - 10);
-                
-                if (p.food <= 0) { 
-                    p.food = 0; 
-                    p.hp -= 20; 
-                    log("У вас критичний голод! Здоров'я різко падає."); 
+
+                // Перевірка касти за авторитетом
+                if (p.auth >= 20) p.caste = "Блатний";
+                else if (p.auth >= 10) p.caste = "Міцний мужик";
+                else p.caste = "Мужик";
+
+                if (p.food <= 0) {
+                    p.food = 0;
+                    p.hp -= 25;
+                    log("У вас критичний виснажливий голод! Здоров'я падає.");
                 }
                 if (p.hp <= 0) {
                     alert("ГРА ЗАВЕРШЕНА: Ваш організм не витримав випробувань у колонії.");
@@ -580,117 +311,106 @@ cat << 'EOF' > index.html
             updateUI();
         }
 
-        function bribeGuardMorning() {
+        function bribeGuard() {
             playClick();
-            if (p.money < 40) { alert("Недостатньо коштів у кишені!"); return; }
-            p.money -= 40;
-            p.paranoia = Math.max(0, p.paranoia - 15);
-            log("Наглядач узяв купони і закрив очі на ваші дрібні гріхи.");
+            if (p.money < 35) { alert("Недостатньо купонів!"); return; }
+            p.money -= 35;
+            log("Наглядачі закрили очі на ваші дрібні проступки.");
             nextPhase();
         }
 
         function doWork() {
             playClick();
-            if (p.food < 20) { alert("Ви надто виснажені голодом, не можете працювати!"); return; }
+            if (p.food < 20) { alert("Ви надто голодні для роботи, спочатку поїжте!"); return; }
             p.food -= 20;
-            p.money += 50;
-            log("Зміну на виробництві завершено. Зроблено план, нараховано кошти.");
+            p.money += 60;
+            log("Відпрацьовано повну зміну на виробництві. Зроблено план (+60 грн).");
             nextPhase();
         }
 
         function goToGym() {
             playClick();
-            if (p.food < 15) { alert("Немає сил тренуватися на порожній шлунок!"); return; }
+            if (p.food < 15) { alert("Недостатньо сил для тренувань на голодний шлунок!"); return; }
             p.food -= 15;
             p.str += 3;
-            log("Важкі тренування у камері зміцшили ваші м'язи.");
+            log("Інтенсивні силові тренування у камері: +3 до сили.");
             nextPhase();
         }
 
-        function smuggleItem() {
+        function blackMarketDeal() {
             playClick();
             let chance = Math.random();
-            p.paranoia += 15;
-            if (chance > 0.4) {
-                p.money += 120;
-                log("Успішно переправлено заборонену партію товарів через промзону (+120 грн)!");
+            if (chance > 0.45) {
+                let gain = Math.floor(Math.random() * 80) + 40;
+                p.money += gain;
+                log(`Успішно виконано нелегальну справу в цеху: +${gain} грн!`);
             } else {
                 p.hp -= 15;
-                log("Охорона запідозрила недобре! Вас побили під час шмону (-15 HP).");
+                log("Бригадир помітив ваші махінації та влаштував прочуханку (-15 HP).");
             }
             nextPhase();
         }
 
-        function openBlackMarket() {
+        function openStore() {
             playClick();
             const modal = document.getElementById('modal-overlay');
             const body = document.getElementById('modal-body');
             
             body.innerHTML = `
-                <h3 style="color:var(--yellow); margin-top:0;">🛒 ЧОРНИЙ РИНОК / ЛАРЕК</h3>
-                <p style="font-size:12px;">Оберіть товар для придбання:</p>
+                <h3 style="color:var(--yellow); margin-top:0;">🛒 ТЮРЕМНИЙ ЛАРЕК</h3>
+                <p style="font-size:12px;">Оберіть продукт для покупки:</p>
                 <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
-                    <button onclick="buyItem('food', 40, 35)">Ситний пакунок їжі (-40 грн)</button>
-                    <button onclick="buyItem('tea', 60, 0)">Пачка якісного чаю-чифіру (-60 грн)</button>
-                    <button onclick="buyItem('phone', 250, 0)">Нелегальний міні-телефон (-250 грн)</button>
-                    <button style="background:#30363d;" onclick="closeModal()">Закрити ринок</button>
+                    <button onclick="buyGoods('food', 35, 35)">Ситний обід (-35 грн, +35 їжі)</button>
+                    <button onclick="buyGoods('tea', 50, 0)">Якісний чай (-50 грн, +3 авторитету)</button>
+                    <button style="background:#30363d;" onclick="closeModal()">Закрити ларек</button>
                 </div>
             `;
             modal.style.display = 'flex';
         }
 
-        function buyItem(type, cost, foodVal) {
+        function buyGoods(type, cost, fVal) {
             playClick();
-            if (p.money < cost) {
-                alert("Недостатньо грошей!");
-                return;
-            }
+            if (p.money < cost) { alert("Недостатньо коштів!"); return; }
             p.money -= cost;
             if (type === 'food') {
-                p.food = Math.min(100, p.food + foodVal);
+                p.food = Math.min(100, p.food + fVal);
                 log("Придбано та спожито продукти харчування.");
             } else if (type === 'tea') {
                 p.auth += 3;
-                p.inventory.push("Чай");
-                log("Придбано чай. Це зміцнило ваші зв'язки серед арештантів.");
-            } else if (type === 'phone') {
-                p.hasPhone = true;
-                p.paranoia += 25;
-                p.inventory.push("Телефон");
-                log("У вас з'явився телефон. Ризик обшуку зріс!");
+                log("Пригостили арештантів чаєм. Авторитет зріс.");
             }
             closeModal();
             updateUI();
         }
 
-        function talkToInmates() {
+        function talkToBosses() {
+            playClientClick = true;
             playClick();
             p.auth += 2;
-            log("Вечірні розмови з правильними людьми підвищили ваш авторитет.");
+            log("Розмова з правильними людьми підвищила вашу повагу у колі ув'язнених.");
             nextPhase();
         }
 
-        function searchYard() {
+        function searchYardCaches() {
             playClick();
-            let found = Math.floor(Math.random() * 70) + 30;
+            let found = Math.floor(Math.random() * 60) + 20;
             p.money += found;
-            log(`У хованці під старим бараком знайдено заначку: +${found} грн!`);
+            log(`Знайдено заначку під плитами двору: +${found} грн!`);
             nextPhase();
         }
 
-        function eatFood() {
+        function eatInCell() {
             playClick();
-            if (p.food >= 90) { alert("Ви й так ситі."); return; }
-            if (p.money < 30) { alert("Немає купонів на їжу."); return; }
+            if (p.money < 30) { alert("Немає грошей на пакунок."); return; }
             p.money -= 30;
             p.food = Math.min(100, p.food + 30);
-            log("Перекусиба запасами з лабазу.");
+            log("Перекусиба запасами з камери.");
             updateUI();
         }
 
         function sleepNight() {
             playClick();
-            p.hp = Math.min(100, p.hp + 15);
+            p.hp = Math.min(100, p.hp + 20);
             nextPhase();
         }
 
@@ -698,44 +418,37 @@ cat << 'EOF' > index.html
             document.getElementById('modal-overlay').style.display = 'none';
         }
 
-        function triggerRandomEvent() {
+        function triggerEvent() {
             const modal = document.getElementById('modal-overlay');
             const body = document.getElementById('modal-body');
             
-            const events = [
+            const evs = [
                 {
-                    title: "🚨 РАПТОВИЙ ШМОН",
-                    desc: "Адміністрація влаштувала позаплановий струс у бараку! Охорона перевіряє ліжка та особисті речі.",
+                    title: "🚨 ПОЗАПЛАНОВИЙ ШМОН",
+                    desc: "Адміністрація підняла весь барак на ногах! Проводиться жорсткий струм та обшук особистих речей.",
                     action: () => {
-                        if (p.hasPhone && Math.random() < 0.7) {
-                            p.hasPhone = false;
-                            p.paranoia += 30;
-                            alert("Шмон! Охорона знайшла ваш телефон і конфіскувала його!");
-                            log("Телефон знайдено та знищено адміністрацією.");
-                        } else {
-                            p.money = Math.max(0, p.money - 30);
-                            alert("Шмон пройшов суворо. Охорона виписала штраф і забрала дрібні готівкові кошти.");
-                            log("Шмон у камері: втрачено 30 грн.");
-                        }
+                        p.money = Math.max(0, p.money - 40);
+                        alert("Шмон завершено. Охорона вилучила частину готівки за порушення.");
+                        log("Шмон у камері: втрачено 40 грн.");
                         closeModal();
                         updateUI();
                     }
                 },
                 {
-                    title: "🤝 ПРОПОЗИЦІЯ ВІД СТАРШИХ",
-                    desc: "Один із впливових ув'язнених пропонує довірити вам делікатне доручення за хорошу винагороду.",
+                    title: "🤝 ВИГОДНА ПРОПОЗИЦІЯ",
+                    desc: "Один із засуджених просить допомогти передати записку в сусідній барак за винагороду.",
                     action: () => {
-                        p.money += 90;
-                        p.auth += 2;
-                        alert("Ви успішно виконали доручення й заробили повагу та гроші!");
-                        log("Виконано доручення старших: +90 грн, +2 авторитету.");
+                        p.money += 80;
+                        p.auth += 1;
+                        alert("Записку передано успішно! Ви отримали подяку та гроші.");
+                        log("Виконано доручення: +80 грн.");
                         closeModal();
                         updateUI();
                     }
                 }
             ];
 
-            let ev = events[Math.floor(Math.random() * events.length)];
+            let ev = evs[Math.floor(Math.random() * evs.length)];
             body.innerHTML = `
                 <h3 style="color:var(--accent); margin-top:0;">${ev.title}</h3>
                 <p style="font-size:12px; line-height:1.4;">${ev.desc}</p>
@@ -747,6 +460,7 @@ cat << 'EOF' > index.html
             modal.style.display = 'flex';
         }
 
+        // Автоматичний старт та ініціалізація
         updateUI();
     </script>
 </body>
