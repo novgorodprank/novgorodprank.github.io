@@ -1,160 +1,539 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="uk">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#09090d">
-<meta name="description" content="Темний хорор-квест: знайди три печатки й виберися з покинутої станції.">
-<title>Остання зміна — хорор-квест</title>
-<style>
-:root{color-scheme:dark;--bg:#09090d;--panel:#15151d;--red:#e3233a;--muted:#aaa8b4;--text:#f4f1f4;--line:#34313c}
-*{box-sizing:border-box}
-body{margin:0;min-height:100svh;background:radial-gradient(ellipse at 50% -20%,#3a101b 0,transparent 48%),var(--bg);color:var(--text);font:16px/1.5 system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
-button{font:inherit;cursor:pointer;touch-action:manipulation}
-button:focus-visible{outline:3px solid #ff6878;outline-offset:3px}
-.shell{width:min(760px,100%);margin:auto;padding:18px 15px calc(28px + env(safe-area-inset-bottom))}
-header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:18px}
-.brand{font-size:.82rem;letter-spacing:.18em;text-transform:uppercase;color:#ff6475;font-weight:800}
-.status{font-size:.75rem;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:5px 10px}
-h1{font-size:clamp(2rem,9vw,3.4rem);line-height:1.02;margin:.2rem 0 .8rem;letter-spacing:-.045em}
-h1 span{color:var(--red)}
-.intro{color:#c5c1cc;max-width:56ch;margin:0 0 18px}
-.panel{background:linear-gradient(145deg,rgba(28,25,34,.96),rgba(14,14,20,.98));border:1px solid var(--line);border-radius:18px;padding:18px;box-shadow:0 18px 50px #0006}
-.scene{position:relative;min-height:210px;border-radius:14px;overflow:hidden;border:1px solid #3b252e;background:linear-gradient(180deg,#14121a,#09090d);display:flex;align-items:center;justify-content:center;text-align:center;padding:22px;margin-bottom:16px}
-.scene:before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 3px,#ffffff05 4px),radial-gradient(ellipse at center,#6a1a2b33,transparent 65%);pointer-events:none}
-.scene-inner{position:relative;z-index:1}
-.scene-icon{font-size:3rem;filter:drop-shadow(0 0 15px #e3233a66)}
-.scene h2{font-size:1.3rem;margin:.4rem 0}
-.scene p{margin:0;color:#c5c1cc;max-width:45ch}
-.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0}
-.stat{border:1px solid var(--line);border-radius:12px;padding:10px;background:#0c0c12}
-.stat small{display:block;color:var(--muted);font-size:.72rem}
-.stat strong{font-size:1.05rem}
-.progress{height:6px;border-radius:99px;background:#30232a;overflow:hidden;margin:8px 0 16px}
-.progress span{display:block;height:100%;width:0;background:linear-gradient(90deg,#871326,#ff4058);transition:width .25s}
-.story{white-space:pre-line;color:#e6e1e8;min-height:62px;margin:10px 0 16px}
-.actions{display:grid;grid-template-columns:1fr;gap:9px}
-.choice{width:100%;text-align:left;background:#211922;color:var(--text);border:1px solid #49303a;border-radius:12px;padding:13px 14px;transition:background .15s,border-color .15s}
-.choice:hover{background:#321a25;border-color:#a33146}
-.choice:disabled{opacity:.45;cursor:not-allowed}
-.primary{background:var(--red);border:1px solid #ff5267;color:white;font-weight:800;text-align:center}
-.primary:hover{background:#ff344d}
-.secondary{text-align:center;background:#171720;border-color:#393743}
-.hint{font-size:.85rem;color:var(--muted);margin:12px 0 0}
-.footer{margin:16px 4px 0;color:#777480;font-size:.75rem;text-align:center}
-.overlay{position:fixed;inset:0;z-index:10;display:none;background:#050507;color:white;align-items:center;justify-content:center;flex-direction:column;padding:20px;text-align:center}
-.overlay.show{display:flex;animation:flash .18s steps(2,end) 3}
-.overlay img{max-width:92vw;max-height:70svh;object-fit:contain;border:2px solid #e3233a;box-shadow:0 0 40px #e3233a55}
-.overlay p{font-weight:900;letter-spacing:.12em;color:#ff596b}
-.overlay button{margin-top:12px}
-@keyframes flash{0%,100%{background:#050507}50%{background:#36000a}}
-@media(min-width:560px){.actions{grid-template-columns:1fr 1fr}.scene{min-height:245px}}
-@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation:none!important;transition:none!important}}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>НУЛЬОВИЙ СИГНАЛ: ФАЗА 2</title>
+    <style>
+        :root {
+            --bg: #050505;
+            --panel: #0d1117;
+            --border: #1f6feb;
+            --text: #c9d1d9;
+            --accent: #ff3333;
+            --accent-glow: rgba(255, 51, 51, 0.4);
+            --terminal-green: #33ff33;
+            --warning: #ffaa00;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+            touch-action: manipulation;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* CRT Scanlines Overlay */
+        body::after {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%), linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+            z-index: 999;
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+        }
+
+        header {
+            background: var(--panel);
+            border-bottom: 2px solid var(--border);
+            padding: 8px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+        }
+
+        .status-badge {
+            display: inline-block;
+            padding: 2px 6px;
+            border: 1px solid var(--border);
+            font-size: 11px;
+            background: rgba(31, 111, 235, 0.1);
+        }
+
+        #game-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 10px;
+            max-width: 600px;
+            width: 100%;
+            margin: 0 auto;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .screen {
+            background: #090d16;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 15px;
+            margin-bottom: 10px;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
+            position: relative;
+        }
+
+        h1, h2, h3 {
+            margin-top: 0;
+            color: var(--accent);
+            text-transform: uppercase;
+            font-size: 16px;
+            letter-spacing: 1px;
+        }
+
+        .room-title {
+            font-size: 14px;
+            color: #58a6ff;
+            margin-bottom: 8px;
+            border-bottom: 1px dashed #30363d;
+            padding-bottom: 4px;
+        }
+
+        .description {
+            font-size: 13px;
+            line-height: 1.4;
+            margin-bottom: 15px;
+            min-height: 70px;
+        }
+
+        .stats-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 5px;
+            margin-bottom: 10px;
+            font-size: 11px;
+        }
+
+        .stat-box {
+            background: #111;
+            border: 1px solid #333;
+            padding: 4px 8px;
+            text-align: center;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: var(--terminal-green);
+        }
+
+        .actions-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        button {
+            background: #161b22;
+            color: var(--text);
+            border: 1px solid #30363d;
+            padding: 10px 12px;
+            text-align: left;
+            font-family: inherit;
+            font-size: 13px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button:active {
+            background: #30363d;
+            border-color: var(--border);
+        }
+
+        button.primary {
+            border-color: var(--border);
+            color: #58a6ff;
+        }
+
+        button.danger {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+        }
+
+        .inventory-bar {
+            display: flex;
+            gap: 5px;
+            overflow-x: auto;
+            padding: 5px 0;
+            margin-bottom: 10px;
+            min-height: 36px;
+        }
+
+        .inv-item {
+            background: #1f242c;
+            border: 1px solid #30363d;
+            padding: 3px 8px;
+            font-size: 11px;
+            white-space: nowrap;
+            border-radius: 3px;
+            color: #7ee787;
+        }
+
+        /* Jumpscare Overlay */
+        #jumpscare {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: black;
+            z-index: 10000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        #jumpscare img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+            animation: shake 0.1s infinite;
+        }
+
+        @keyframes shake {
+            0% { transform: translate(2px, 2px) rotate(0deg); }
+            20% { transform: translate(-3px, -2px) rotate(-1deg); }
+            40% { transform: translate(-2px, 3px) rotate(1deg); }
+            60% { transform: translate(3px, 1px) rotate(0deg); }
+            80% { transform: translate(-1px, -2px) rotate(-1deg); }
+            100% { transform: translate(1px, 2px) rotate(1deg); }
+        }
+
+        .log-box {
+            font-size: 11px;
+            color: #8b949e;
+            background: #010409;
+            padding: 6px;
+            border: 1px solid #21262d;
+            height: 60px;
+            overflow-y: auto;
+            margin-top: auto;
+        }
+
+        .modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 5000;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: #0d1117;
+            border: 2px solid var(--border);
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+            border-radius: 6px;
+            text-align: center;
+        }
+
+        .code-input {
+            width: 100%;
+            padding: 8px;
+            background: #000;
+            border: 1px solid #30363d;
+            color: var(--terminal-green);
+            font-family: inherit;
+            font-size: 16px;
+            text-align: center;
+            margin: 10px 0;
+        }
+    </style>
 </head>
 <body>
-<div class="shell">
-<header><div class="brand">Night Shift / 01</div><div class="status" id="status">СИГНАЛ: НЕСТАБІЛЬНИЙ</div></header>
-<main>
-<h1>Остання <span>зміна</span></h1>
-<p class="intro">Ти залишився сам на покинутій станції. Світло згасає, двері замкнені, а в коридорі хтось ходить. Знайди три печатки й виберися до світанку.</p>
-<section class="panel" aria-live="polite">
-<div class="scene"><div class="scene-inner"><div class="scene-icon" id="sceneIcon">🌑</div><h2 id="sceneTitle">Станція мовчить</h2><p id="sceneSub">Ти чуєш три удари з-за зачинених дверей.</p></div></div>
-<div class="grid">
-<div class="stat"><small>Печатки</small><strong id="seals">0 / 3</strong></div>
-<div class="stat"><small>Ліхтарик</small><strong id="battery">100%</strong></div>
-<div class="stat"><small>Небезпека</small><strong id="danger">Низька</strong></div>
-</div>
-<div class="progress" aria-label="Знайдені печатки"><span id="progress"></span></div>
-<div class="story" id="story">На стіні написано: «Не відповідай, якщо почуєш власний голос».</div>
-<div class="actions" id="actions">
-<button class="choice" data-action="hall">🚪 Увійти в коридор</button>
-<button class="choice" data-action="desk">🗄️ Обшукати чергову</button>
-<button class="choice" data-action="stairs">🪜 Спуститися в підвал</button>
-<button class="choice" data-action="listen">👂 Прислухатися</button>
-</div>
-<p class="hint" id="hint">Порада: оглядай місця уважно. Деякі знахідки відкривають нові можливості.</p>
-</section>
-</main>
-<p class="footer">Гра працює локально в браузері. Камера, геолокація та особисті дані не використовуються.</p>
-</div>
-<div class="overlay" id="overlay" role="dialog" aria-modal="true" aria-labelledby="overlayText">
-<img id="scareImage" src="scary.jpg" alt="Страшне зображення" hidden>
-<p id="overlayText">ТИ НЕ САМ</p>
-<button class="choice primary" id="closeScare">Повернутися до гри</button>
-</div>
-<audio id="scareAudio" src="scream.mp3" preload="auto"></audio>
-<script>
-(() => {
-const $ = id => document.getElementById(id);
-const state = {seals:0,battery:100,danger:0,visited:new Set(),key:false,ending:false,scareShown:false};
-const scenes = {
-hall:{icon:"🚪",title:"Коридор",sub:"Лампа блимає над дверима з трьома замками.",story:"На підлозі тягнеться мокрий слід. Він веде до вентиляційної решітки.",actions:[["vent","🔦 Оглянути вентиляцію"],["door","🔒 Перевірити двері"],["back","↩️ Повернутися до станції"]]},
-desk:{icon:"🗄️",title:"Черговий пост",sub:"Старий монітор світиться, хоча живлення вимкнене.",story:"У шухляді лежить записка: «Те, що шукаєш, уже знає твоє ім’я». Під запискою — батарейка.",actions:[["battery","🔋 Замінити батарейку"],["monitor","🖥️ Увімкнути монітор"],["back","↩️ Повернутися до станції"]]},
-stairs:{icon:"🪜",title:"Підвал",sub:"Знизу тягне холодом. Сходи скриплять за кожним кроком.",story:"На бетоні намальований знак. Поруч щось блищить у темряві.",actions:[["mark","🩸 Дослідити знак"],["shiny","✨ Підібрати блискучий предмет"],["back","↩️ Повернутися до станції"]]},
-vent:{icon:"🕳️",title:"Вентиляція",sub:"Решітка відходить із глухим скреготом.",story:"За нею захована перша печатка. У пилюці видно свіжі відбитки пальців.",actions:[["seal1","✋ Забрати печатку"],["back","↩️ Відійти"]]},
-door:{icon:"🔒",title:"Замкнені двері",sub:"Три порожні гнізда для печаток.",story:"Двері не піддаються. Спочатку знайди всі три печатки.",actions:[["trydoor","🚪 Спробувати відчинити"],["back","↩️ Відійти"]]},
-battery:{icon:"🔋",title:"Ліхтарик заряджено",sub:"Промінь став яскравішим.",story:"Тепер ти можеш довше досліджувати темні місця.",actions:[["back","↩️ Назад"]]},
-monitor:{icon:"🖥️",title:"Монітор",sub:"На екрані відображається камера порожнього коридору.",story:"За твоєю спиною на записі стоїть силует. Ти обертаєшся — нікого. Знайдено підказку: підвал.",actions:[["back","↩️ Назад"],["stairs","🪜 Іти в підвал"]]},
-mark:{icon:"🩸",title:"Знак на бетоні",sub:"Лінії утворюють символ замка.",story:"Ти торкаєшся знака. У голові лунає шепіт: «Шукай там, де вода не тече».",actions:[["back","↩️ Назад"],["drain","🕳️ Оглянути стік"]]},
-shiny:{icon:"✨",title:"Срібний ключ",sub:"Метал крижаний на дотик.",story:"Ти знайшов ключ від старої шафки в черговій.",actions:[["key","🗝️ Забрати ключ"],["back","↩️ Назад"]]},
-drain:{icon:"🕳️",title:"Стік",sub:"Під решіткою щось заховано.",story:"Ти дістаєш другу печатку, вкриту чорною сажею.",actions:[["seal2","✋ Забрати печатку"],["back","↩️ Назад"]]},
-key:{icon:"🗝️",title:"Ключ у кишені",sub:"Тепер можна відкрити шафку чергового.",story:"Повернись до чергової та пошукай замкнену шафку.",actions:[["back","↩️ Назад"],["locker","🗄️ Відкрити шафку"]]},
-locker:{icon:"🗄️",title:"Шафка",sub:"Замок клацає.",story:"Усередині третя печатка й записка: «Вихід чекає на того, хто не озирнеться».",actions:[["seal3","✋ Забрати печатку"],["back","↩️ Назад"]]},
-exit:{icon:"🚪",title:"Вихід",sub:"Три печатки тремтять у замках.",story:"Ти чуєш кроки просто за спиною. Відчинити двері — останній шанс.",actions:[["escape","🏃 Відчинити й утекти"],["look","👁️ Озирнутися"]]},
-};
-function renderScene(key){
- const s=scenes[key]||scenes.hall;
- $("sceneIcon").textContent=s.icon;$("sceneTitle").textContent=s.title;$("sceneSub").textContent=s.sub;$("story").textContent=s.story;
- const actions=$("actions");actions.replaceChildren();
- s.actions.forEach(([act,label])=>{const b=document.createElement("button");b.className="choice";b.textContent=label;b.addEventListener("click",()=>doAction(act));actions.appendChild(b)});
- updateStats();
-}
-function say(text){$("story").textContent=text}
-function updateStats(){
- $("seals").textContent=`${state.seals} / 3`;$("battery").textContent=`${state.battery}%`;
- $("danger").textContent=state.danger<2?"Низька":state.danger<4?"Зростає":"КРИТИЧНА";
- $("progress").style.width=`${state.seals/3*100}%`;
- $("status").textContent=state.danger>=4?"НЕБЕЗПЕКА":"СИГНАЛ: НЕСТАБІЛЬНИЙ";
-}
-function doAction(a){
- if(state.ending)return;
- if(["hall","desk","stairs"].includes(a)){
-   state.visited.add(a);state.battery=Math.max(0,state.battery-5);state.danger=Math.min(5,state.danger+1);renderScene(a);return;
- }
- switch(a){
- case "back":renderScene("home");$("sceneIcon").textContent="🌑";$("sceneTitle").textContent="Станція мовчить";$("sceneSub").textContent="Ти чуєш три удари з-за зачинених дверей.";say("На стіні написано: «Не відповідай, якщо почуєш власний голос».");$("actions").innerHTML="";[["hall","🚪 Увійти в коридор"],["desk","🗄️ Обшукати чергову"],["stairs","🪜 Спуститися в підвал"],["listen","👂 Прислухатися"]].forEach(([act,label])=>{let b=document.createElement("button");b.className="choice";b.textContent=label;b.onclick=()=>doAction(act);$("actions").appendChild(b)});break;
- case "listen":state.danger=Math.min(5,state.danger+1);say("З темряви лунає твій голос: «Я вже тут». Ти не відповідаєш. Краще досліджувати станцію.");updateStats();break;
- case "vent":renderScene("vent");break;
- case "door":renderScene("door");break;
- case "battery":state.battery=100;renderScene("battery");break;
- case "monitor":renderScene("monitor");break;
- case "mark":renderScene("mark");break;
- case "shiny":renderScene("shiny");break;
- case "drain":renderScene("drain");break;
- case "key":state.key=true;renderScene("key");break;
- case "locker":if(state.key)renderScene("locker");else say("Шафка замкнена. Потрібен ключ із підвалу.");break;
- case "seal1":if(state.seals<1)state.seals++;state.danger=Math.min(5,state.danger+1);renderScene("hall");say("Печатка 1/3 знайдена. З вентиляції хтось прошепотів твоє ім’я.");break;
- case "seal2":if(state.seals<2)state.seals++;state.danger=Math.min(5,state.danger+1);renderScene("stairs");say("Печатка 2/3 знайдена. Сходи позаду тебе більше не видно.");break;
- case "seal3":if(state.seals<3)state.seals++;renderScene("exit");say("Усі три печатки на місці. Двері повільно відчиняються.");break;
- case "trydoor":if(state.seals>=3)renderScene("exit");else say(`Двері не рухаються. Потрібно ще печаток: ${3-state.seals}.`);break;
- case "exit":if(state.seals>=3){state.ending=true;renderScene("exit");say("Ти вирвався назовні. На світанку станція здається порожньою…");setTimeout(showScare,800)}else say("Три замки все ще закриті. Знайди всі печатки.");break;
- case "look":state.ending=true;say("Ти озираєшся. Силует стоїть за кілька сантиметрів від тебе…");setTimeout(showScare,450);break;
- }
-}
-function showScare(){
- if(state.scareShown)return;state.scareShown=true;
- const img=$("scareImage");img.hidden=false;img.onerror=()=>{img.hidden=true};
- $("overlay").classList.add("show");
- const audio=$("scareAudio");audio.currentTime=0;audio.play().catch(()=>{});
- $("closeScare").focus();
-}
-$("closeScare").addEventListener("click",()=>{$("overlay").classList.remove("show");$("scareAudio").pause()});
-renderScene("home");
-$("sceneIcon").textContent="🌑";$("sceneTitle").textContent="Станція мовчить";$("sceneSub").textContent="Ти чуєш три удари з-за зачинених дверей.";
-$("actions").replaceChildren();
-[["hall","🚪 Увійти в коридор"],["desk","🗄️ Обшукати чергову"],["stairs","🪜 Спуститися в підвал"],["listen","👂 Прислухатися"]].forEach(([act,label])=>{const b=document.createElement("button");b.className="choice";b.textContent=label;b.onclick=()=>doAction(act);$("actions").appendChild(b)});
-})();
-</script>
-</body>
-</html>
+
+    <header>
+        <div> ОБ'ЄКТ-31 // СИГНАЛ</div>
+        <div id="status-time" class="status-badge">03:42 AM</div>
+    </header>
+
+    <div id="game-container">
+        <!-- Статистика гравця -->
+        <div class="stats-panel">
+            <div class="stat-box">ЛІХТАР: <span id="stat-battery" class="stat-value">100%</span></div>
+            <div class="stat-box">НАПРУГА: <span id="stat-sanity" class="stat-value">ОРМА</span></div>
+            <div class="stat-box">ДОСТУП: <span id="stat-key" class="stat-value">1 ур.</span></div>
+        </div>
+
+        <!-- Інвентар -->
+        <div class="inventory-bar" id="inventory-bar">
+            <span style="font-size:11px; color:#484f58; align-self:center;">Інвентар порожній</span>
+        </div>
+
+        <!-- Основний екран гри -->
+        <div class="screen">
+            <div class="room-title" id="room-name">// ЗОНА: ВХІДНИЙ ШЛЮЗ</div>
+            <div class="description" id="room-desc">
+                Аварійне освітлення ледь блимає червоним. Двері заблоковані через збій протоколу безпеки. Повітря важке від гару та озону.
+            </div>
+            
+            <div class="actions-grid" id="actions-box">
+                <!-- Днамічні кнопки подій -->
+            </div>
+        </div>
+
+        <!-- Журнал подій -->
+        <div class="log-box" id="game-log">
+            [03:42] Система ініціалізована. Зв'язок із зовнішнім світом відсутній.<br>
+        </div>
+    </div>
+
+    <!-- Модальне вікно для міні-ігор / злому -->
+    <div id="modal-overlay" class="modal" style="display: none;">
+        <div class="modal-content" id="modal-body">
+            <!-- Динамічний вміст модалки -->
+        </div>
+    </div>
+
+    <!-- Скрімер-оверлей -->
+    <div id="jumpscare">
+        <img id="scary-img" src="scary.jpg" alt="ANOMALY" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 400 400\'><rect width=\'400\' height=\'400\' fill=\'%23000\'/><circle cx=\'200\' cy=\'200\' r=\'120\' fill=\'%23800\'/><circle cx=\'150\' cy=\'170\' r=\'20\' fill=\'%23ff0\'/><circle cx=\'250\' cy=\'170\' r=\'20\' fill=\'%23ff0\'/><path d=\'M130 270 Q200 200 270 270\' stroke=\'%23fff\' stroke-width=\'10\' fill=\'none\'/></svg>'">
+    </div>
+
+    <!-- Аудіо (сзгенерується програмно або використає scream.mp3) -->
+    <audio id="scream-audio" src="scream.mp3" preload="auto"></audio>
+
+    <script>
+        // Ігрові дані
+        let state = {
+            room: 'gate',
+            battery: 100,
+            sanity: 100, // 100 = спокій, 0 = божевілля
+            accessLevel: 1,
+            inventory: [],
+            flags: {
+                hasFlashlight: false,
+                hasKeycard: false,
+                hasCode: false,
+                terminalFixed: false,
+                radioActive: false,
+                reactorShutdown: false
+            }
+        };
+
+        const rooms = {
+            gate: {
+                name: "ЗОНА 01: ВХІДНИЙ ШЛЮЗ",
+                desc: "Головні гермодвері задраєно. На підлозі валяється розбитий службовий планшет та важкий металевий ключ.",
+                actions: [
+                    { text: "Оглянути розбитий планшет", action: () => examineTablet() },
+                    { text: "Взяти службовий ключ (Ур. 1)", condition: () => !state.flags.hasKeycard, action: () => takeKeycard() },
+                    { text: "Пройти до кімнати чергового ->", action: () => changeRoom('guard') }
+                ]
+            },
+            guard: {
+                name: "ЗОНА 02: КІМНАТА ЧЕРГОВОГО",
+                desc: "Екрани систем спостереження розбиті. На столі мерехтить термінал з миготливим рядком введення та стара рація.",
+                actions: [
+                    { text: "Скористатися терміналом доступу", action: () => openTerminal() },
+                    { text: "Налаштувати аварійну рацію", action: () => openRadio() },
+                    { text: "<- Повернутися у шлюз", action: () => changeRoom('gate') },
+                    { text: "Спуститися до лабораторії ->", condition: () => state.accessLevel >= 2, action: () => changeRoom('lab') },
+                    { text: "Зайти до темного архіву ->", action: () => changeRoom('archive') }
+                ]
+            },
+            archive: {
+                name: "ЗОНА 03: АРХІВ ДОКУМЕНТІВ",
+                desc: "Вузькі ряди стелажів завалені папками. У кутку чутно дивне дряпання та хрипіння в темряві.",
+                actions: [
+                    { text: "Шукати документи про «Нульовий сигнал»", action: () => searchArchive() },
+                    { text: "Увімкнути ліхтарик на повну потужність", action: () => boostFlashlight() },
+                    { text: "<- Повернутися в кімнату чергового", action: () => changeRoom('guard') }
+                ]
+            },
+            lab: {
+                name: "ЗОНА 04: ДОСЛІДНИЦЬКА ЛАБОРАТОРІЯ",
+                desc: "Колби розбиті. У центрі кімнати стоїть панель керування ядерним генератором комплексу.",
+                actions: [
+                    { text: "Виконати аварійне скидання реактора", condition: () => !state.flags.reactorShutdown, action: () => shutdownReactor() },
+                    { text: "Відкрити шлюз до диспетчерської ->", condition: () => state.flags.reactorShutdown, action: () => changeRoom('control') },
+                    { text: "<- Повернутися", action: () => changeRoom('guard') }
+                ]
+            },
+            control: {
+                name: "ЗОНА 05: ГОЛОВНА ДИСПЕТЧЕРСЬКА",
+                desc: "Панорамне вікно назовні виходить у темну ніч. Сигнал передається автоматично через супутник.",
+                actions: [
+                    { text: "Вимкнути передавач (Порятунок)", action: () => winGame(1) },
+                    { text: "Відповісти на сигнал (Справжній фінал)", condition: () => state.flags.radioActive, action: () => winGame(2) },
+                    { text: "Зробити дурницю...", action: () => triggerJumpscare() }
+                ]
+            }
+        };
+
+        function log(text) {
+            const logBox = document.getElementById('game-log');
+            logBox.innerHTML += `[03:${Math.floor(Math.random()*50)+10}] ${text}<br>`;
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function updateUI() {
+            document.getElementById('stat-battery').innerText = state.battery + '%';
+            document.getElementById('stat-key').innerText = state.accessLevel + ' ур.';
+            
+            let sanityText = "НОРМА";
+            let sanityColor = "var(--terminal-green)";
+            if (state.sanity < 70) { sanityText = "ТРИВОГА"; sanityColor = "var(--warning)"; }
+            if (state.sanity < 30) { sanityText = "ПАНІКА"; sanityColor = "var(--accent)"; }
+            
+            const sanityEl = document.getElementById('stat-sanity');
+            sanityEl.innerText = sanityText;
+            sanityEl.style.color = sanityColor;
+
+            // Інвентар
+            const invBar = document.getElementById('inventory-bar');
+            if (state.inventory.length === 0) {
+                invBar.innerHTML = '<span style="font-size:11px; color:#484f58; align-self:center;">Інвентар порожній</span>';
+            } else {
+                invBar.innerHTML = state.inventory.map(item => `<div class="inv-item">📦 ${item}</div>`).join('');
+            }
+
+            // Рендер кімнати
+            const room = rooms[state.room];
+            document.getElementById('room-name').innerText = "// " + room.name;
+            document.getElementById('room-desc').innerText = room.desc;
+
+            const actionsBox = document.getElementById('actions-box');
+            actionsBox.innerHTML = '';
+
+            room.actions.forEach(act => {
+                if (act.condition && !act.condition()) return;
+                const btn = document.createElement('button');
+                btn.innerText = act.text;
+                btn.onclick = act.action;
+                actionsBox.appendChild(btn);
+            });
+        }
+
+        function changeRoom(roomKey) {
+            state.room = roomKey;
+            state.battery = Math.max(0, state.battery - 2);
+            state.sanity = Math.max(0, state.sanity - 1);
+            if (state.battery <= 0) {
+                triggerJumpscare();
+                return;
+            }
+            updateUI();
+        }
+
+        // Події
+        function examineTablet() {
+            log("Знайдено запис у планшеті: «Код доступу до лабораторії відповідає першим цифрам аварійного протоколу: 4815»");
+            state.flags.hasCode = true;
+            alert("Запис у планшеті:\n«Код доступу до лабораторії: 4815»");
+            updateUI();
+        }
+
+        function takeKeycard() {
+            state.flags.hasKeycard = true;
+            state.accessLevel = 2;
+            state.inventory.push("Ключ-карта Ур.2");
+            log("Підібрано ключ-карту другого рівня доступу.");
+            updateUI();
+        }
+
+        function openTerminal() {
+            const modal = document.getElementById('modal-overlay');
+            const body = document.getElementById('modal-body');
+            
+            body.innerHTML = `
+                <h3> ТЕРМІНАЛ ДОСТУПУ</h3>
+                <p style="font-size:12px;">Введіть 4-значний код розблокування лабораторії:</p>
+                <input type="password" id="terminal-code" class="code-input" maxlength="4" placeholder="****">
+                <div style="display:flex; gap:10px; margin-top:15px;">
+                    <button class="primary" style="flex:1;" onclick="checkTerminalCode()">ПІДТВЕРДИТИ</button>
+                    <button style="flex:1;" onclick="closeModal()">ВИЙТИ</button>
+                </div>
+            `;
+            modal.style.display = 'flex';
+        }
+
+        function checkTerminalCode() {
+            const val = document.getElementById('terminal-code').value;
+            if (val === "4815" || state.flags.terminalFixed) {
+                state.flags.terminalFixed = true;
+                state.accessLevel = 3;
+                log("Термінал розблоковано! Рівень доступу підвищено до 3.");
+                alert("Доступ дозволено! Лабораторія розблокована.");
+                closeModal();
+                updateUI();
+            } else {
+                alert("НЕВІРНИЙ КОД! Тривогу активовано.");
+                state.sanity -= 15;
+                closeModal();
+                updateUI();
+            }
+        }
+
+        function openRadio() {
+            const modal = document.getElementById('modal-overlay');
+            const body = document.getElementById('modal-body');
+            
+            body.innerHTML = `
+                <h3> АВАРІЙНА РАЦІЯ</h3>
+                <p style="font-size:12px;">Частота зашумлена. Налаштуйте приймач на хвилю 104.5 МГц:</p>
+                <div style="font-size:20px; color:var(--terminal-green); margin:10px 0;" id="freq-display">92.0 МГц</div>
+                <input type="range" min="88" max="108" step="0.5" value="92" id="freq-slider" style="width:100%;" oninput="document.getElementById('freq-display').innerText=this.value+' МГц'">
+                <div style="display:flex; gap:10px; margin-top:15px;">
+                    <button class="primary" style="flex:1;" onclick="tuneRadio()">НАЛАШТУВАТИ</button>
+                    <button style="flex:1;" onclick="closeModal()">ЗАКРИТИ</button>
+                </div>
+            `;
+            modal.style.display = 'flex';
+        }
+
+        function tuneRadio() {
+            const sliderVal = parseFloat(document.getElementById('freq-slider').value);
+            if (Math.abs(sliderVal - 104.5) < 0.6) {
+                state.flags.radioActive = true;
+                state.inventory.push("Анонімний сигнал");
+                log("Зловісний голос у рації прошепотів: «Ми чекаємо на тебе нагорі...»");
+                alert("Спіймано невідомий сигнал! Голос у рації говорить про відкриття секретного фіналу.");
+                closeModal();
+                updateUI();
+            } else {
+                alert("Лише білий шум татріскіт статичної електрики.");
+                closeModal();
+            }
+        }
+
+        function searchArchive() {
+            state.sanity -= 20;
+            state.inventory.push("Секретний файл #03");
+            log("У темряві щось промильнуло поруч із стелажем! Отримано засекречений документ.");
+            if (state.sanity <= 15) {
+                triggerJumpscare();
+            } else {
+                alert("Ви знайшли папери з грифом «Цілком таємно». Щось торкнулося вашого плеча у темряві...");
+                updateUI();
+            }
+        }
+
+        function boostFlashlight() {
+            state.battery = Math.max(0, state.battery - 35);
+            state.sanity = Math.min(100, state.sanity + 15);
+            log("Потужний промінь л
