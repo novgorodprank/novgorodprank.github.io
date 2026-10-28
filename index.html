@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>НУЛЬОВИЙ СИГНАЛ: ФАЗА 2</title>
+    <title>НУЛЬОВИЙ СИГНАЛ: ФАЗА 2 (AUDIO EDITION)</title>
     <style>
         :root {
             --bg: #050505;
@@ -225,9 +225,30 @@
             50% { transform: translate(-3px, -2px); }
             100% { transform: translate(1px, 2px); }
         }
+
+        /* Стартовий екран для підтвердження аудіо */
+        #start-overlay {
+            position: fixed;
+            top:0; left:0; width:100vw; height:100vh;
+            background: #050505;
+            z-index: 9000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 20px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
+
+    <!-- Екран запуску звуку -->
+    <div id="start-overlay">
+        <h2 style="color:var(--accent);">⚡ ОБ'ЄКТ-31 // СИГНАЛ</h2>
+        <p style="font-size:13px; color:var(--text); margin-bottom:20px;">Для активації фонового гулу, звуків клавіш та звукових ефектів натисніть кнопку нижче:</p>
+        <button class="primary" style="text-align:center; padding:16px; font-size:15px;" onclick="initAudio()">🔊 УВІМКНУТИ ЗВУК ТА ПОЧАТИ</button>
+    </div>
 
     <header>
         <div>⚡ ОБ'ЄКТ-31 // СИГНАЛ</div>
@@ -276,6 +297,94 @@
     <audio id="scream-audio" src="scream.mp3" preload="auto"></audio>
 
     <script>
+        // WEB AUDIO SYSTEM
+        let audioCtx = null;
+        let ambientOsc = null;
+        let ambientGain = null;
+
+        function initAudio() {
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Фоновий низькочастотний гул (Dark Ambient)
+                ambientOsc = audioCtx.createOscillator();
+                ambientGain = audioCtx.createGain();
+                
+                ambientOsc.type = 'sawtooth';
+                ambientOsc.frequency.setValueAtTime(55, audioCtx.currentTime); // Низька нота Ля (55Hz)
+                
+                // Фільтр низьких частот для створення «глухого» підземного гулу
+                let filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(120, audioCtx.currentTime);
+
+                ambientGain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+
+                ambientOsc.connect(filter);
+                filter.connect(ambientGain);
+                ambientGain.connect(audioCtx.destination);
+                
+                ambientOsc.start();
+
+                document.getElementById('start-overlay').style.display = 'none';
+                playClickSound();
+            } catch(e) {
+                document.getElementById('start-overlay').style.display = 'none';
+            }
+        }
+
+        function playClickSound() {
+            if (!audioCtx) return;
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.04);
+            
+            gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.04);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.04);
+        }
+
+        function playErrorSound() {
+            if (!audioCtx) return;
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc.frequency.setValueAtTime(100, audioCtx.currentTime + 0.1);
+            
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.25);
+        }
+
+        function playRadioStatic() {
+            if (!audioCtx) return;
+            let bufferSize = audioCtx.sampleRate * 0.15;
+            let buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            let output = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                output[i] = Math.random() * 2 - 1;
+            }
+            let whiteNoise = audioCtx.createBufferSource();
+            whiteNoise.buffer = buffer;
+            let gain = audioCtx.createGain();
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            whiteNoise.connect(gain);
+            gain.connect(audioCtx.destination);
+            whiteNoise.start();
+        }
+
+        // Ігрові дані
         let state = {
             room: 'gate',
             battery: 100,
@@ -295,46 +404,46 @@
                 name: "ЗОНА 01: ВХІДНИЙ ШЛЮЗ",
                 desc: "Головні гермодвері задраєно. На підлозі валяється розбитий службовий планшет та важкий металевий ключ.",
                 actions: [
-                    { text: "🔍 Оглянути розбитий планшет", action: () => examineTablet() },
-                    { text: "🔑 Взяти службовий ключ (Ур. 1)", condition: () => !state.flags.hasKeycard, action: () => takeKeycard() },
-                    { text: "➡️ Перейти до кімнати чергового", action: () => changeRoom('guard') }
+                    { text: "🔍 Оглянути розбитий планшет", action: () => { playClickSound(); examineTablet(); } },
+                    { text: "🔑 Взяти службовий ключ (Ур. 1)", condition: () => !state.flags.hasKeycard, action: () => { playClickSound(); takeKeycard(); } },
+                    { text: "➡️ Перейти до кімнати чергового", action: () => { playClickSound(); changeRoom('guard'); } }
                 ]
             },
             guard: {
                 name: "ЗОНА 02: КІМНАТА ЧЕРГОВОГО",
                 desc: "Екрани спостереження розбиті. На столі мерехтить термінал з миготливим рядком введення та стара аварійна рація.",
                 actions: [
-                    { text: "💻 Скористатися терміналом доступу", action: () => openTerminal() },
-                    { text: "📻 Налаштувати аварійну рацію", action: () => openRadio() },
-                    { text: "⬅️ Повернутися у шлюз", action: () => changeRoom('gate') },
-                    { text: "🔬 Спуститися до лабораторії", condition: () => state.accessLevel >= 2, action: () => changeRoom('lab') },
-                    { text: "📂 Зайти до темного архіву", action: () => changeRoom('archive') }
+                    { text: "💻 Скористатися терміналом доступу", action: () => { playClickSound(); openTerminal(); } },
+                    { text: "📻 Налаштувати аварійну рацію", action: () => { playClickSound(); openRadio(); } },
+                    { text: "⬅️ Повернутися у шлюз", action: () => { playClickSound(); changeRoom('gate'); } },
+                    { text: "🔬 Спуститися до лабораторії", condition: () => state.accessLevel >= 2, action: () => { playClickSound(); changeRoom('lab'); } },
+                    { text: "📂 Зайти до темного архіву", action: () => { playClickSound(); changeRoom('archive'); } }
                 ]
             },
             archive: {
                 name: "ЗОНА 03: АРХІВ ДОКУМЕНТІВ",
                 desc: "Вузькі ряди стелажів завалені документами. У кутку чутно дивне хрипіння та кроки в темряві.",
                 actions: [
-                    { text: "📑 Шукати секретні папери", action: () => searchArchive() },
-                    { text: "⚡ Увімкнути ліхтарик на максимум", action: () => boostFlashlight() },
-                    { text: "⬅️ Повернутися в кімнату чергового", action: () => changeRoom('guard') }
+                    { text: "📑 Шукати секретні папери", action: () => { playClickSound(); searchArchive(); } },
+                    { text: "⚡ Увімкнути ліхтарик на максимум", action: () => { playClickSound(); boostFlashlight(); } },
+                    { text: "⬅️ Повернутися в кімнату чергового", action: () => { playClickSound(); changeRoom('guard'); } }
                 ]
             },
             lab: {
                 name: "ЗОНА 04: ДОСЛІДНИЦЬКА ЛАБОРАТОРІЯ",
                 desc: "Колби розбиті. У центрі кімнати стоїть пульт керування ядерним генератором комплексу.",
                 actions: [
-                    { text: "⚙️ Виконати аварійне скидання реактора", condition: () => !state.flags.reactorShutdown, action: () => shutdownReactor() },
-                    { text: "🚪 Відчинити шлюз до диспетчерської", condition: () => state.flags.reactorShutdown, action: () => changeRoom('control') },
-                    { text: "⬅️ Повернутися назад", action: () => changeRoom('guard') }
+                    { text: "⚙️ Виконати аварійне скидання реактора", condition: () => !state.flags.reactorShutdown, action: () => { playClickSound(); shutdownReactor(); } },
+                    { text: "🚪 Відчинити шлюз до диспетчерської", condition: () => state.flags.reactorShutdown, action: () => { playClickSound(); changeRoom('control'); } },
+                    { text: "⬅️ Повернутися назад", action: () => { playClickSound(); changeRoom('guard'); } }
                 ]
             },
             control: {
                 name: "ЗОНА 05: ГОЛОВНА ДИСПЕТЧЕРСЬКА",
                 desc: "Панорамне вікно виходить у ніч. Сигнал передається через супутник на невідому частоту.",
                 actions: [
-                    { text: "🛑 Вимкнути передавач (Звичайний фінал)", action: () => winGame(1) },
-                    { text: "📡 Відповісти на сигнал (Справжній фінал)", condition: () => state.flags.radioActive, action: () => winGame(2) },
+                    { text: "🛑 Вимкнути передавач (Звичайний фінал)", action: () => { playClickSound(); winGame(1); } },
+                    { text: "📡 Відповісти на сигнал (Справжній фінал)", condition: () => state.flags.radioActive, action: () => { playClickSound(); winGame(2); } },
                     { text: "👁️ Озирнутися назад...", action: () => triggerJumpscare() }
                 ]
             }
@@ -359,7 +468,6 @@
             sanityEl.innerText = sanityText;
             sanityEl.style.color = sanityColor;
 
-            // Інвентар
             const invBar = document.getElementById('inventory-bar');
             if (state.inventory.length === 0) {
                 invBar.innerHTML = '<span style="font-size:11px; color:#484f58; align-self:center; padding-left:4px;">Інвентар порожній</span>';
@@ -367,7 +475,6 @@
                 invBar.innerHTML = state.inventory.map(item => `<div class="inv-item">📦 ${item}</div>`).join('');
             }
 
-            // Рендер кімнати
             const room = rooms[state.room];
             document.getElementById('room-name').innerText = "// " + room.name;
             document.getElementById('room-desc').innerText = room.desc;
@@ -416,10 +523,10 @@
             body.innerHTML = `
                 <h3>💻 ТЕРМІНАЛ ДОСТУПУ</h3>
                 <p style="font-size:12px; margin-bottom:10px;">Введіть 4-значний код розблокування:</p>
-                <input type="password" id="terminal-code" class="code-input" maxlength="4" placeholder="****">
+                <input type="password" id="terminal-code" class="code-input" maxlength="4" placeholder="****" onkeypress="playClickSound()">
                 <div style="display:flex; gap:10px; margin-top:15px;">
-                    <button class="primary" style="flex:1;" onclick="checkTerminalCode()">ОК</button>
-                    <button style="flex:1;" onclick="closeModal()">НАЗАД</button>
+                    <button class="primary" style="flex:1;" onclick="playClickSound(); checkTerminalCode();">ОК</button>
+                    <button style="flex:1;" onclick="playClickSound(); closeModal();">НАЗАД</button>
                 </div>
             `;
             modal.style.display = 'flex';
@@ -435,6 +542,7 @@
                 closeModal();
                 updateUI();
             } else {
+                playErrorSound();
                 alert("НЕВІРНИЙ КОД! Рівень напруги зріс.");
                 state.sanity -= 15;
                 closeModal();
@@ -450,10 +558,581 @@
                 <h3>📻 АВАРІЙНА РАЦІЯ</h3>
                 <p style="font-size:12px; margin-bottom:10px;">Налаштуйте приймач на хвилю 104.5 МГц:</p>
                 <div style="font-size:22px; color:var(--terminal-green); margin:10px 0;" id="freq-display">92.0 МГц</div>
-                <input type="range" min="88" max="108" step="0.5" value="92" id="freq-slider" style="width:100%;" oninput="document.getElementById('freq-display').innerText=this.value+' МГц'">
+                <input type="range" min="88" max="108" step="0.5" value="92" id="freq-slider" style="width:100%;" oninput="playRadioStatic(); document.getElementById('freq-display').innerText=this.value+' МГц'">
                 <div style="display:flex; gap:10px; margin-top:15px;">
-                    <button class="primary" style="flex:1;" onclick="tuneRadio()">СЛУХАТИ</button>
-                    <button style="flex:1;" onclick="closeModal()">ЗАКРИТИ</button>
+                    <button class="primary" style="flex:1;" onclick="playClickSound(); tuneRadio();">СЛУХАТИ</button>
+                    <button style="flex:1;" onclick="playClickSound(); closeModal();">ЗАКРИТИ</button>
+                </div>
+            `;
+            modal.style.display = 'flex';
+
+cd ~/prank
+
+cat << 'EOF' > index.html
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>НУЛЬОВИЙ СИГНАЛ: ФАЗА 2 (AUDIO EDITION)</title>
+    <style>
+        :root {
+            --bg: #050505;
+            --panel: #0d1117;
+            --border: #1f6feb;
+            --text: #c9d1d9;
+            --accent: #ff3333;
+            --terminal-green: #33ff33;
+            --warning: #ffaa00;
+        }
+
+        * {
+            box-sizing: border-box;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            margin: 0;
+            padding: 12px;
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Courier New', Courier, monospace;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* CRT Scanlines */
+        body::after {
+            content: " ";
+            display: block;
+            position: fixed;
+            top: 0; left: 0; bottom: 0; right: 0;
+            background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%);
+            z-index: 999;
+            background-size: 100% 4px;
+            pointer-events: none;
+        }
+
+        header {
+            background: var(--panel);
+            border: 2px solid var(--border);
+            padding: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 13px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+        }
+
+        .stats-panel {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 6px;
+            margin-bottom: 10px;
+            font-size: 11px;
+        }
+
+        .stat-box {
+            background: #111;
+            border: 1px solid #333;
+            padding: 6px;
+            text-align: center;
+            border-radius: 4px;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: var(--terminal-green);
+        }
+
+        .inventory-bar {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding: 6px 0;
+            margin-bottom: 10px;
+            min-height: 38px;
+        }
+
+        .inv-item {
+            background: #1f242c;
+            border: 1px solid #30363d;
+            padding: 4px 10px;
+            font-size: 11px;
+            white-space: nowrap;
+            border-radius: 4px;
+            color: #7ee787;
+        }
+
+        .screen {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 12px;
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.8);
+        }
+
+        .room-title {
+            font-size: 14px;
+            color: #58a6ff;
+            margin-bottom: 10px;
+            border-bottom: 1px dashed #30363d;
+            padding-bottom: 6px;
+            text-transform: uppercase;
+        }
+
+        .description {
+            font-size: 13px;
+            line-height: 1.5;
+            margin-bottom: 15px;
+        }
+
+        .actions-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        button {
+            background: #161b22;
+            color: var(--text);
+            border: 1px solid #30363d;
+            padding: 14px;
+            text-align: left;
+            font-family: inherit;
+            font-size: 13px;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        button:active {
+            background: #30363d;
+            border-color: var(--border);
+        }
+
+        button.primary {
+            border-color: var(--border);
+            color: #58a6ff;
+        }
+
+        button.danger {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .log-box {
+            font-size: 11px;
+            color: #8b949e;
+            background: #010409;
+            padding: 10px;
+            border: 1px solid #21262d;
+            border-radius: 6px;
+            height: 80px;
+            overflow-y: auto;
+            margin-top: auto;
+        }
+
+        /* Модальне вікно */
+        .modal {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 5000;
+            padding: 20px;
+        }
+
+        .modal-content {
+            background: #0d1117;
+            border: 2px solid var(--border);
+            padding: 20px;
+            width: 100%;
+            max-width: 360px;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .code-input {
+            width: 100%;
+            padding: 10px;
+            background: #000;
+            border: 1px solid #30363d;
+            color: var(--terminal-green);
+            font-family: inherit;
+            font-size: 18px;
+            text-align: center;
+            margin: 12px 0;
+            border-radius: 4px;
+        }
+
+        /* Скрімер */
+        #jumpscare {
+            position: fixed;
+            top: 0; left: 0; width: 100vw; height: 100vh;
+            background: black;
+            z-index: 10000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+        }
+
+        #jumpscare img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: cover;
+            animation: shake 0.1s infinite;
+        }
+
+        @keyframes shake {
+            0% { transform: translate(2px, 2px); }
+            50% { transform: translate(-3px, -2px); }
+            100% { transform: translate(1px, 2px); }
+        }
+
+        /* Стартовий екран для підтвердження аудіо */
+        #start-overlay {
+            position: fixed;
+            top:0; left:0; width:100vw; height:100vh;
+            background: #050505;
+            z-index: 9000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            padding: 20px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Екран запуску звуку -->
+    <div id="start-overlay">
+        <h2 style="color:var(--accent);">⚡ ОБ'ЄКТ-31 // СИГНАЛ</h2>
+        <p style="font-size:13px; color:var(--text); margin-bottom:20px;">Для активації фонового гулу, звуків клавіш та звукових ефектів натисніть кнопку нижче:</p>
+        <button class="primary" style="text-align:center; padding:16px; font-size:15px;" onclick="initAudio()">🔊 УВІМКНУТИ ЗВУК ТА ПОЧАТИ</button>
+    </div>
+
+    <header>
+        <div>⚡ ОБ'ЄКТ-31 // СИГНАЛ</div>
+        <div id="status-time" style="color:var(--warning);">03:42 AM</div>
+    </header>
+
+    <!-- Статистика -->
+    <div class="stats-panel">
+        <div class="stat-box">ЛІХТАР: <span id="stat-battery" class="stat-value">100%</span></div>
+        <div class="stat-box">ПСИХІКА: <span id="stat-sanity" class="stat-value">НОРМА</span></div>
+        <div class="stat-box">ДОСТУП: <span id="stat-key" class="stat-value">1 ур.</span></div>
+    </div>
+
+    <!-- Інвентар -->
+    <div class="inventory-bar" id="inventory-bar">
+        <span style="font-size:11px; color:#484f58; align-self:center; padding-left:4px;">Інвентар порожній</span>
+    </div>
+
+    <!-- Ігровий екран -->
+    <div class="screen">
+        <div class="room-title" id="room-name">// ЗОНА: ВХІДНИЙ ШЛЮЗ</div>
+        <div class="description" id="room-desc">
+            Аварійне освітлення ледь блимає червоним. Головні гермодвері заблоковані через збій протоколу безпеки. У повітрі пахне гаром.
+        </div>
+        
+        <div class="actions-grid" id="actions-box">
+            <!-- Кнопки генеруються скриптом -->
+        </div>
+    </div>
+
+    <!-- Журнал -->
+    <div class="log-box" id="game-log">
+        [03:42] Система ініціалізована. Зв'язок із зовнішнім світом відсутній.<br>
+    </div>
+
+    <!-- Модалка для міні-ігор -->
+    <div id="modal-overlay" class="modal">
+        <div class="modal-content" id="modal-body"></div>
+    </div>
+
+    <!-- Скрімер -->
+    <div id="jumpscare">
+        <img id="scary-img" src="scary.jpg" alt="ANOMALY" onerror="this.src='data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' viewBox=\'0 0 400 400\'><rect width=\'400\' height=\'400\' fill=\'%23000\'/><circle cx=\'200\' cy=\'200\' r=\'120\' fill=\'%23800\'/><circle cx=\'150\' cy=\'170\' r=\'25\' fill=\'%23ff0\'/><circle cx=\'250\' cy=\'170\' r=\'25\' fill=\'%23ff0\'/><path d=\'M130 260 Q200 180 270 260\' stroke=\'%23fff\' stroke-width=\'12\' fill=\'none\'/></svg>'">
+    </div>
+
+    <audio id="scream-audio" src="scream.mp3" preload="auto"></audio>
+
+    <script>
+        // WEB AUDIO SYSTEM
+        let audioCtx = null;
+        let ambientOsc = null;
+        let ambientGain = null;
+
+        function initAudio() {
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                
+                // Фоновий низькочастотний гул (Dark Ambient)
+                ambientOsc = audioCtx.createOscillator();
+                ambientGain = audioCtx.createGain();
+                
+                ambientOsc.type = 'sawtooth';
+                ambientOsc.frequency.setValueAtTime(55, audioCtx.currentTime); // Низька нота Ля (55Hz)
+                
+                // Фільтр низьких частот для створення «глухого» підземного гулу
+                let filter = audioCtx.createBiquadFilter();
+                filter.type = 'lowpass';
+                filter.frequency.setValueAtTime(120, audioCtx.currentTime);
+
+                ambientGain.gain.setValueAtTime(0.04, audioCtx.currentTime);
+
+                ambientOsc.connect(filter);
+                filter.connect(ambientGain);
+                ambientGain.connect(audioCtx.destination);
+                
+                ambientOsc.start();
+
+                document.getElementById('start-overlay').style.display = 'none';
+                playClickSound();
+            } catch(e) {
+                document.getElementById('start-overlay').style.display = 'none';
+            }
+        }
+
+        function playClickSound() {
+            if (!audioCtx) return;
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(800, audioCtx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.04);
+            
+            gain.gain.setValueAtTime(0.08, audioCtx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.04);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.04);
+        }
+
+        function playErrorSound() {
+            if (!audioCtx) return;
+            let osc = audioCtx.createOscillator();
+            let gain = audioCtx.createGain();
+            osc.type = 'sawtooth';
+            osc.frequency.setValueAtTime(150, audioCtx.currentTime);
+            osc.frequency.setValueAtTime(100, audioCtx.currentTime + 0.1);
+            
+            gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+            gain.gain.linearRampToValueAtTime(0.01, audioCtx.currentTime + 0.25);
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+            osc.start();
+            osc.stop(audioCtx.currentTime + 0.25);
+        }
+
+        function playRadioStatic() {
+            if (!audioCtx) return;
+            let bufferSize = audioCtx.sampleRate * 0.15;
+            let buffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            let output = buffer.getChannelData(0);
+            for (let i = 0; i < bufferSize; i++) {
+                output[i] = Math.random() * 2 - 1;
+            }
+            let whiteNoise = audioCtx.createBufferSource();
+            whiteNoise.buffer = buffer;
+            let gain = audioCtx.createGain();
+            gain.gain.setValueAtTime(0.05, audioCtx.currentTime);
+            whiteNoise.connect(gain);
+            gain.connect(audioCtx.destination);
+            whiteNoise.start();
+        }
+
+        // Ігрові дані
+        let state = {
+            room: 'gate',
+            battery: 100,
+            sanity: 100,
+            accessLevel: 1,
+            inventory: [],
+            flags: {
+                hasKeycard: false,
+                terminalFixed: false,
+                radioActive: false,
+                reactorShutdown: false
+            }
+        };
+
+        const rooms = {
+            gate: {
+                name: "ЗОНА 01: ВХІДНИЙ ШЛЮЗ",
+                desc: "Головні гермодвері задраєно. На підлозі валяється розбитий службовий планшет та важкий металевий ключ.",
+                actions: [
+                    { text: "🔍 Оглянути розбитий планшет", action: () => { playClickSound(); examineTablet(); } },
+                    { text: "🔑 Взяти службовий ключ (Ур. 1)", condition: () => !state.flags.hasKeycard, action: () => { playClickSound(); takeKeycard(); } },
+                    { text: "➡️ Перейти до кімнати чергового", action: () => { playClickSound(); changeRoom('guard'); } }
+                ]
+            },
+            guard: {
+                name: "ЗОНА 02: КІМНАТА ЧЕРГОВОГО",
+                desc: "Екрани спостереження розбиті. На столі мерехтить термінал з миготливим рядком введення та стара аварійна рація.",
+                actions: [
+                    { text: "💻 Скористатися терміналом доступу", action: () => { playClickSound(); openTerminal(); } },
+                    { text: "📻 Налаштувати аварійну рацію", action: () => { playClickSound(); openRadio(); } },
+                    { text: "⬅️ Повернутися у шлюз", action: () => { playClickSound(); changeRoom('gate'); } },
+                    { text: "🔬 Спуститися до лабораторії", condition: () => state.accessLevel >= 2, action: () => { playClickSound(); changeRoom('lab'); } },
+                    { text: "📂 Зайти до темного архіву", action: () => { playClickSound(); changeRoom('archive'); } }
+                ]
+            },
+            archive: {
+                name: "ЗОНА 03: АРХІВ ДОКУМЕНТІВ",
+                desc: "Вузькі ряди стелажів завалені документами. У кутку чутно дивне хрипіння та кроки в темряві.",
+                actions: [
+                    { text: "📑 Шукати секретні папери", action: () => { playClickSound(); searchArchive(); } },
+                    { text: "⚡ Увімкнути ліхтарик на максимум", action: () => { playClickSound(); boostFlashlight(); } },
+                    { text: "⬅️ Повернутися в кімнату чергового", action: () => { playClickSound(); changeRoom('guard'); } }
+                ]
+            },
+            lab: {
+                name: "ЗОНА 04: ДОСЛІДНИЦЬКА ЛАБОРАТОРІЯ",
+                desc: "Колби розбиті. У центрі кімнати стоїть пульт керування ядерним генератором комплексу.",
+                actions: [
+                    { text: "⚙️ Виконати аварійне скидання реактора", condition: () => !state.flags.reactorShutdown, action: () => { playClickSound(); shutdownReactor(); } },
+                    { text: "🚪 Відчинити шлюз до диспетчерської", condition: () => state.flags.reactorShutdown, action: () => { playClickSound(); changeRoom('control'); } },
+                    { text: "⬅️ Повернутися назад", action: () => { playClickSound(); changeRoom('guard'); } }
+                ]
+            },
+            control: {
+                name: "ЗОНА 05: ГОЛОВНА ДИСПЕТЧЕРСЬКА",
+                desc: "Панорамне вікно виходить у ніч. Сигнал передається через супутник на невідому частоту.",
+                actions: [
+                    { text: "🛑 Вимкнути передавач (Звичайний фінал)", action: () => { playClickSound(); winGame(1); } },
+                    { text: "📡 Відповісти на сигнал (Справжній фінал)", condition: () => state.flags.radioActive, action: () => { playClickSound(); winGame(2); } },
+                    { text: "👁️ Озирнутися назад...", action: () => triggerJumpscare() }
+                ]
+            }
+        };
+
+        function log(text) {
+            const logBox = document.getElementById('game-log');
+            logBox.innerHTML += `[03:${Math.floor(Math.random()*50)+10}] ${text}<br>`;
+            logBox.scrollTop = logBox.scrollHeight;
+        }
+
+        function updateUI() {
+            document.getElementById('stat-battery').innerText = state.battery + '%';
+            document.getElementById('stat-key').innerText = state.accessLevel + ' ур.';
+            
+            let sanityText = "НОРМА";
+            let sanityColor = "var(--terminal-green)";
+            if (state.sanity < 70) { sanityText = "ТРИВОГА"; sanityColor = "var(--warning)"; }
+            if (state.sanity < 30) { sanityText = "ПАНІКА"; sanityColor = "var(--accent)"; }
+            
+            const sanityEl = document.getElementById('stat-sanity');
+            sanityEl.innerText = sanityText;
+            sanityEl.style.color = sanityColor;
+
+            const invBar = document.getElementById('inventory-bar');
+            if (state.inventory.length === 0) {
+                invBar.innerHTML = '<span style="font-size:11px; color:#484f58; align-self:center; padding-left:4px;">Інвентар порожній</span>';
+            } else {
+                invBar.innerHTML = state.inventory.map(item => `<div class="inv-item">📦 ${item}</div>`).join('');
+            }
+
+            const room = rooms[state.room];
+            document.getElementById('room-name').innerText = "// " + room.name;
+            document.getElementById('room-desc').innerText = room.desc;
+
+            const actionsBox = document.getElementById('actions-box');
+            actionsBox.innerHTML = '';
+
+            room.actions.forEach(act => {
+                if (act.condition && !act.condition()) return;
+                const btn = document.createElement('button');
+                btn.innerText = act.text;
+                btn.onclick = act.action;
+                actionsBox.appendChild(btn);
+            });
+        }
+
+        function changeRoom(roomKey) {
+            state.room = roomKey;
+            state.battery = Math.max(0, state.battery - 3);
+            state.sanity = Math.max(0, state.sanity - 2);
+            if (state.battery <= 0) {
+                triggerJumpscare();
+                return;
+            }
+            updateUI();
+        }
+
+        function examineTablet() {
+            log("Знайдено запис у планшеті: «Код доступу до лабораторії відповідає першим цифрам аварійного протоколу: 4815»");
+            alert("Запис у розбитому планшеті:\n«Код доступу до лабораторії: 4815»");
+            updateUI();
+        }
+
+        function takeKeycard() {
+            state.flags.hasKeycard = true;
+            state.accessLevel = 2;
+            state.inventory.push("Ключ-карта Ур.2");
+            log("Підібрано ключ-карту другого рівня доступу.");
+            updateUI();
+        }
+
+        function openTerminal() {
+            const modal = document.getElementById('modal-overlay');
+            const body = document.getElementById('modal-body');
+            
+            body.innerHTML = `
+                <h3>💻 ТЕРМІНАЛ ДОСТУПУ</h3>
+                <p style="font-size:12px; margin-bottom:10px;">Введіть 4-значний код розблокування:</p>
+                <input type="password" id="terminal-code" class="code-input" maxlength="4" placeholder="****" onkeypress="playClickSound()">
+                <div style="display:flex; gap:10px; margin-top:15px;">
+                    <button class="primary" style="flex:1;" onclick="playClickSound(); checkTerminalCode();">ОК</button>
+                    <button style="flex:1;" onclick="playClickSound(); closeModal();">НАЗАД</button>
+                </div>
+            `;
+            modal.style.display = 'flex';
+        }
+
+        function checkTerminalCode() {
+            const val = document.getElementById('terminal-code').value;
+            if (val === "4815" || state.flags.terminalFixed) {
+                state.flags.terminalFixed = true;
+                state.accessLevel = 3;
+                log("Термінал розблоковано! Рівень доступу підвищено до 3.");
+                alert("Доступ дозволено! Лабораторія повністю розблокована.");
+                closeModal();
+                updateUI();
+            } else {
+                playErrorSound();
+                alert("НЕВІРНИЙ КОД! Рівень напруги зріс.");
+                state.sanity -= 15;
+                closeModal();
+                updateUI();
+            }
+        }
+
+        function openRadio() {
+            const modal = document.getElementById('modal-overlay');
+            const body = document.getElementById('modal-body');
+            
+            body.innerHTML = `
+                <h3>📻 АВАРІЙНА РАЦІЯ</h3>
+                <p style="font-size:12px; margin-bottom:10px;">Налаштуйте приймач на хвилю 104.5 МГц:</p>
+                <div style="font-size:22px; color:var(--terminal-green); margin:10px 0;" id="freq-display">92.0 МГц</div>
+                <input type="range" min="88" max="108" step="0.5" value="92" id="freq-slider" style="width:100%;" oninput="playRadioStatic(); document.getElementById('freq-display').innerText=this.value+' МГц'">
+                <div style="display:flex; gap:10px; margin-top:15px;">
+                    <button class="primary" style="flex:1;" onclick="playClickSound(); tuneRadio();">СЛУХАТИ</button>
+                    <button style="flex:1;" onclick="playClickSound(); closeModal();">ЗАКРИТИ</button>
                 </div>
             `;
             modal.style.display = 'flex';
@@ -469,6 +1148,7 @@
                 closeModal();
                 updateUI();
             } else {
+                playErrorSound();
                 alert("Лише білий шум та тріскіт статичної електрики.");
                 closeModal();
             }
