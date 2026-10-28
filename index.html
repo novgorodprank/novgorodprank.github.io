@@ -1,467 +1,643 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>УСТАНОВА №31: ЕВОЛЮЦІЯ</title>
-    <style>
-        :root {
-            --bg: #07090f;
-            --panel: #0d1117;
-            --border: #30363d;
-            --text: #c9d1d9;
-            --accent: #f85149;
-            --green: #2ea043;
-            --yellow: #db6d28;
-            --blue: #58a6ff;
-            --purple: #bc8cff;
-        }
-
-        * { box-sizing: border-box; user-select: none; -webkit-user-select: none; }
-
-        body {
-            margin: 0;
-            padding: 10px;
-            background-color: var(--bg);
-            color: var(--text);
-            font-family: 'Courier New', Courier, monospace;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-        }
-
-        header {
-            background: var(--panel);
-            border: 2px solid var(--blue);
-            padding: 10px;
-            border-radius: 6px;
-            margin-bottom: 8px;
-            text-align: center;
-        }
-
-        h1 { margin: 0; font-size: 15px; color: var(--yellow); text-transform: uppercase; }
-
-        .stats-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 5px;
-            margin-bottom: 8px;
-            font-size: 11px;
-        }
-
-        .stat-box {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            padding: 5px 8px;
-            border-radius: 4px;
-            display: flex;
-            justify-content: space-between;
-        }
-
-        .screen {
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            padding: 12px;
-            margin-bottom: 8px;
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .location-title {
-            font-size: 13px;
-            color: var(--blue);
-            margin-bottom: 6px;
-            border-bottom: 1px dashed var(--border);
-            padding-bottom: 4px;
-            text-transform: uppercase;
-        }
-
-        .description {
-            font-size: 12px;
-            line-height: 1.4;
-            margin-bottom: 10px;
-            flex: 1;
-        }
-
-        .actions-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-        }
-
-        button {
-            background: #161b22;
-            color: var(--text);
-            border: 1px solid var(--border);
-            padding: 12px;
-            text-align: left;
-            font-family: inherit;
-            font-size: 12px;
-            border-radius: 5px;
-            cursor: pointer;
-            transition: 0.1s;
-        }
-
-        button:active { background: #30363d; border-color: var(--blue); }
-        button.primary { border-color: var(--blue); color: var(--blue); }
-        button.danger { border-color: var(--accent); color: var(--accent); }
-        button.special { border-color: var(--purple); color: var(--purple); }
-
-        .log-box {
-            font-size: 10px;
-            color: #8b949e;
-            background: #010409;
-            padding: 8px;
-            border: 1px solid var(--border);
-            border-radius: 6px;
-            height: 70px;
-            overflow-y: auto;
-        }
-
-        .modal {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85);
-            display: none;
-            justify-content: center;
-            align-items: center;
-            z-index: 5000;
-            padding: 15px;
-        }
-        .modal-content {
-            background: var(--panel);
-            border: 2px solid var(--yellow);
-            padding: 15px;
-            width: 100%;
-            max-width: 380px;
-            border-radius: 8px;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>УСТАНОВА №31</title>
+<style>
+:root{
+  --bg:#06080d;--panel:#0d1117;--border:#30363d;--text:#c9d1d9;
+  --red:#f85149;--green:#3fb950;--yellow:#d29922;--blue:#58a6ff;
+  --purple:#bc8cff;--muted:#8b949e;--orange:#db6d28;
+}
+*{box-sizing:border-box;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{
+  background:var(--bg);color:var(--text);
+  font-family:'Courier New',Courier,monospace;
+  display:flex;flex-direction:column;
+  max-width:480px;margin:0 auto;padding:6px;
+  padding-bottom:env(safe-area-inset-bottom,6px);
+}
+header{
+  background:var(--panel);border:2px solid var(--blue);
+  border-radius:6px;padding:8px 10px;text-align:center;margin-bottom:5px;flex-shrink:0;
+}
+h1{font-size:13px;color:var(--yellow);letter-spacing:.4px}
+#time-phase{font-size:10px;color:var(--yellow);margin-top:2px;opacity:.9}
+.stats{
+  display:grid;grid-template-columns:1fr 1fr 1fr;gap:3px;
+  margin-bottom:5px;font-size:10px;flex-shrink:0;
+}
+.stat{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:4px;padding:4px 6px;
+  display:flex;justify-content:space-between;align-items:center;
+}
+.stat b{font-weight:700}
+.screen{
+  background:var(--panel);border:1px solid var(--border);
+  border-radius:6px;padding:10px;flex:1;min-height:0;
+  display:flex;flex-direction:column;overflow:hidden;margin-bottom:5px;
+}
+.loc-title{
+  font-size:12px;color:var(--blue);text-transform:uppercase;
+  border-bottom:1px dashed var(--border);padding-bottom:4px;margin-bottom:6px;flex-shrink:0;
+}
+.desc{
+  font-size:11px;line-height:1.4;color:#b1bac4;
+  margin-bottom:8px;overflow-y:auto;flex-shrink:1;max-height:90px;
+}
+.actions{display:flex;flex-direction:column;gap:5px;overflow-y:auto;flex:1;min-height:0;padding-bottom:2px}
+button{
+  background:#161b22;color:var(--text);border:1px solid var(--border);
+  padding:10px 11px;text-align:left;font-family:inherit;font-size:11px;
+  border-radius:5px;cursor:pointer;line-height:1.25;width:100%;
+}
+button:active{background:#30363d;border-color:var(--blue);transform:scale(.98)}
+button.primary{border-color:var(--blue);color:var(--blue)}
+button.danger{border-color:var(--red);color:var(--red)}
+button.special{border-color:var(--purple);color:var(--purple)}
+button.success{border-color:var(--green);color:var(--green)}
+button.muted{opacity:.55;font-size:10px}
+button:disabled{opacity:.4;pointer-events:none}
+.log{
+  font-size:9px;color:var(--muted);background:#010409;
+  border:1px solid var(--border);border-radius:5px;
+  padding:6px 8px;height:72px;overflow-y:auto;line-height:1.35;flex-shrink:0;
+}
+.modal{
+  position:fixed;inset:0;background:rgba(0,0,0,.9);
+  display:none;justify-content:center;align-items:center;
+  z-index:9999;padding:14px;
+}
+.modal.show{display:flex}
+.modal-box{
+  background:var(--panel);border:2px solid var(--yellow);
+  border-radius:8px;padding:14px;width:100%;max-width:360px;
+  max-height:88vh;overflow-y:auto;
+}
+.modal-box h3{font-size:13px;margin-bottom:8px}
+.modal-box p{font-size:11px;line-height:1.45;color:#b1bac4;margin-bottom:8px}
+.modal-box .row{display:flex;flex-direction:column;gap:6px;margin-top:10px}
+.inv-row{
+  display:flex;justify-content:space-between;align-items:center;
+  border:1px solid var(--border);border-radius:4px;padding:7px 8px;margin-bottom:5px;font-size:11px;
+}
+.toast{
+  position:fixed;bottom:18px;left:50%;transform:translateX(-50%);
+  background:#161b22;border:1px solid var(--blue);color:var(--text);
+  padding:9px 14px;border-radius:6px;font-size:11px;z-index:10000;
+  opacity:0;transition:opacity .2s;pointer-events:none;max-width:92%;text-align:center;
+}
+.toast.show{opacity:1}
+.hp-ok{color:var(--green)}.hp-mid{color:var(--yellow)}.hp-low{color:var(--red)}
+.tag{font-size:9px;opacity:.7}
+#boot{
+  position:fixed;inset:0;background:var(--bg);z-index:20000;
+  display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px;text-align:center;
+}
+#boot h2{color:var(--yellow);font-size:16px;margin-bottom:10px}
+#boot p{font-size:11px;color:var(--muted);line-height:1.5;margin-bottom:16px;max-width:320px}
+</style>
 </head>
 <body>
 
-    <header>
-        <h1>🏛️ УСТАНОВА №31 // ДЕНЬ <span id="day-num">1</span></h1>
-        <div id="time-phase" style="font-size:11px; color: var(--yellow); margin-top:2px;">Етап: Підйом та перевірка</div>
-    </header>
+<div id="boot">
+  <h2>🏛️ УСТАНОВА №31</h2>
+  <p>Ти потрапив у колонію. Виживай, заробляй авторитет, не здохни з голоду і не попади під роздачу.<br><br>Збереження автоматичне.</p>
+  <button class="primary" style="width:80%;text-align:center;padding:14px" onclick="startGame(false)">▶ ПРОДОВЖИТИ / НОВА ГРА</button>
+  <button class="muted" style="width:80%;text-align:center;margin-top:8px" onclick="startGame(true)">Скинути збереження і почати з нуля</button>
+</div>
 
-    <div class="stats-grid">
-        <div class="stat-box">❤️ ЗДОРОВ'Я: <span id="stat-hp" style="color:var(--green)">100%</span></div>
-        <div class="stat-box">🍞 СИТТІСТЬ: <span id="stat-food" style="color:var(--yellow)">80%</span></div>
-        <div class="stat-box">💪 СИЛА: <span id="stat-str" style="color:var(--blue)">10</span></div>
-        <div class="stat-box">⭐ АВТОРИТЕТ: <span id="stat-auth" style="color:var(--blue)">5</span></div>
-        <div class="stat-box">🛡️ СТАТУС: <span id="stat-caste" style="color:var(--purple)">Мужик</span></div>
-        <div class="stat-box">💵 КУПОНИ: <span id="stat-money" style="color:var(--green)">150 грн</span></div>
-    </div>
+<header>
+  <h1>🏛️ УСТАНОВА №31 · ДЕНЬ <span id="d">1</span></h1>
+  <div id="time-phase">Етап: —</div>
+</header>
 
-    <div class="screen">
-        <div class="location-title" id="loc-name">КАМЕРА №31</div>
-        <div class="description" id="loc-desc">Завантаження ігрового процесу... Якщо ви бачите цей текст, гра ініціалізується.</div>
-        
-        <div class="actions-grid" id="actions-box">
-            <!-- Кнопки генеруються скриптом -->
-        </div>
-    </div>
+<div class="stats">
+  <div class="stat"><span>❤️</span><b id="s-hp" class="hp-ok">100</b></div>
+  <div class="stat"><span>🍞</span><b id="s-food" style="color:var(--yellow)">80</b></div>
+  <div class="stat"><span>💵</span><b id="s-money" style="color:var(--green)">150</b></div>
+  <div class="stat"><span>💪</span><b id="s-str" style="color:var(--blue)">10</b></div>
+  <div class="stat"><span>⭐</span><b id="s-auth" style="color:var(--blue)">5</b></div>
+  <div class="stat"><span>🛡️</span><b id="s-caste" style="color:var(--purple)">Мужик</b></div>
+</div>
 
-    <div class="log-box" id="game-log">
-        [Система] Двигун гри активовано. Установа №31 відкрита для виживання.<br>
-    </div>
+<div class="screen">
+  <div class="loc-title" id="loc">—</div>
+  <div class="desc" id="desc">—</div>
+  <div class="actions" id="acts"></div>
+</div>
 
-    <div id="modal-overlay" class="modal">
-        <div class="modal-content" id="modal-body"></div>
-    </div>
+<div class="log" id="log">[Система] Двигун запущено.<br></div>
+<div class="toast" id="toast"></div>
+<div class="modal" id="modal"><div class="modal-box" id="mbox"></div></div>
 
-    <script>
-        let p = {
-            day: 1,
-            phase: 0, // 0: Ранок, 1: Промзона/Робота, 2: Двір/Ринок, 3: Вечір, 4: Ніч
-            hp: 100,
-            food: 80,
-            str: 10,
-            auth: 5,
-            money: 150,
-            caste: "Мужик",
-            inventory: []
-        };
+<script>
+const SK='u31_full_v3';
+const PHASES=['Ранкова перевірка','Промзона / робота','Двір / вільний час','Вечір у бараку','Нічний відбій'];
+const ITEMS={
+  cigarettes:{n:'Цигарки',p:35,d:'+1⭐ при використанні'},
+  foodpack:{n:'Пакунок їжі',p:40,d:'+40🍞'},
+  tea:{n:'Чай',p:50,d:'+3⭐ (розпив)'},
+  medkit:{n:'Аптечка',p:65,d:'+30❤️'},
+  knife:{n:'Заточка',p:110,d:'+6 сили в бою'},
+  vodka:{n:'Брага',p:80,d:'+2⭐, −10❤️, +15🍞'},
+  paper:{n:'Папір/ручка',p:25,d:'Для маляви'},
+  soap:{n:'Мило',p:20,d:'Трохи ❤️ / обмін'}
+};
 
-        const phases = [
-            "Ранкова перевірка на плацу",
-            "Виробнича зміна на промзоні",
-            "Вільний час / Тюремний двір",
-            "Вечірній збір у бараку",
-            "Нічний відбій"
-        ];
+let P={
+  day:1,phase:0,hp:100,food:80,str:10,auth:5,money:150,
+  caste:'Мужик',inv:{},debt:0,fights:0,escapes:0,
+  shizo:0,rep:0,quest:null,flags:{},snd:true,seenTut:false
+};
 
-        let audioCtx = null;
-        function playClick() {
-            try {
-                if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                let osc = audioCtx.createOscillator();
-                let g = audioCtx.createGain();
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(440, audioCtx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(120, audioCtx.currentTime + 0.04);
-                g.gain.setValueAtTime(0.05, audioCtx.currentTime);
-                g.gain.linearRampToValueAtTime(0.001, audioCtx.currentTime + 0.04);
-                osc.connect(g); g.connect(audioCtx.destination);
-                osc.start(); osc.stop(audioCtx.currentTime + 0.04);
-            } catch(e){}
-        }
+let actx=null;
+function beep(f=440,t=.04,type='square',v=.04){
+  if(!P.snd)return;
+  try{
+    if(!actx)actx=new(window.AudioContext||window.webkitAudioContext)();
+    const o=actx.createOscillator(),g=actx.createGain();
+    o.type=type;o.frequency.value=f;
+    g.gain.setValueAtTime(v,actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(.001,actx.currentTime+t);
+    o.connect(g);g.connect(actx.destination);o.start();o.stop(actx.currentTime+t);
+  }catch(e){}
+}
+function click(){beep(420,.035)}
+function ok(){beep(620,.07)}
+function bad(){beep(110,.18,'sawtooth',.06)}
 
-        function log(msg) {
-            const box = document.getElementById('game-log');
-            box.innerHTML += `[День ${p.day}] ${msg}<br>`;
-            box.scrollTop = box.scrollHeight;
-        }
+function clamp(v,a,b){return Math.max(a,Math.min(b,v))}
+function rnd(a,b){return Math.floor(Math.random()*(b-a+1))+a}
+function chance(p){return Math.random()<p}
 
-        function updateUI() {
-            document.getElementById('day-num').innerText = p.day;
-            document.getElementById('time-phase').innerText = "Етап: " + phases[p.phase];
-            document.getElementById('stat-hp').innerText = p.hp + '%';
-            document.getElementById('stat-food').innerText = p.food + '%';
-            document.getElementById('stat-str').innerText = p.str;
-            document.getElementById('stat-auth').innerText = p.auth;
-            document.getElementById('stat-caste').innerText = p.caste;
-            document.getElementById('stat-money').innerText = p.money + ' грн';
+function log(m){
+  const el=document.getElementById('log');
+  el.innerHTML+=`[Д${P.day}] ${m}<br>`;
+  el.scrollTop=el.scrollHeight;
+}
+function toast(m,ms=2000){
+  const t=document.getElementById('toast');
+  t.textContent=m;t.classList.add('show');
+  clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),ms);
+}
+function save(){try{localStorage.setItem(SK,JSON.stringify(P))}catch(e){}}
+function load(){
+  try{
+    const r=localStorage.getItem(SK);
+    if(r){Object.assign(P,JSON.parse(r));return true}
+  }catch(e){}
+  return false;
+}
+function inv(id){return P.inv[id]||0}
+function add(id,n=1){P.inv[id]=(P.inv[id]||0)+n}
+function take(id,n=1){if(inv(id)<n)return false;P.inv[id]-=n;if(P.inv[id]<=0)delete P.inv[id];return true}
 
-            renderActions();
-        }
+function updCaste(){
+  if(P.auth>=35)P.caste='Блатний';
+  else if(P.auth>=22)P.caste='Авторитет';
+  else if(P.auth>=12)P.caste='Міцний мужик';
+  else if(P.auth>=0)P.caste='Мужик';
+  else P.caste='Опущений';
+}
+function disc(){
+  if(P.caste==='Блатний')return.25;
+  if(P.caste==='Авторитет')return.15;
+  if(P.caste==='Міцний мужик')return.08;
+  return 0;
+}
 
-        function renderActions() {
-            const box = document.getElementById('actions-box');
-            box.innerHTML = '';
+function ui(){
+  updCaste();
+  document.getElementById('d').textContent=P.day;
+  document.getElementById('time-phase').textContent='Етап: '+PHASES[P.phase];
+  const hp=document.getElementById('s-hp');
+  hp.textContent=P.hp;
+  hp.className=P.hp>60?'hp-ok':P.hp>30?'hp-mid':'hp-low';
+  const fd=document.getElementById('s-food');
+  fd.textContent=P.food;
+  fd.style.color=P.food>40?'var(--yellow)':'var(--red)';
+  document.getElementById('s-money').textContent=P.money+(P.debt>0?`/−${P.debt}`:'');
+  document.getElementById('s-str').textContent=P.str;
+  document.getElementById('s-auth').textContent=P.auth;
+  document.getElementById('s-caste').textContent=P.caste;
+  render();
+  save();
+}
 
-            if (p.phase === 0) {
-                document.getElementById('loc-name').innerText = "ПЛАЦ // РАНКОВА ПЕРЕВІРКА";
-                document.getElementById('loc-desc').innerText = "Бригада застигла у холодній шерензі. Наглядачі суворо перераховують ув'язнених.";
-                
-                box.innerHTML = `
-                    <button onclick="nextPhase()">Вистояти перевірку у загальному строю</button>
-                    <button class="primary" onclick="bribeGuard()">Дати хабар наглядачам (-35 грн)</button>
-                `;
-            } else if (p.phase === 1) {
-                document.getElementById('loc-name').innerText = "ПРОМЗОНА // ЦЕХ ВЕРИФІКАЦІЇ";
-                document.getElementById('loc-desc').innerText = "Виробничі приміщення установи. Можна сумлінно працювати або витратити час на зміцнення м'язів та зв'язки.";
-                
-                box.innerHTML = `
-                    <button onclick="doWork()">Працювати на виробництві (+60 грн, -20 ситості)</button>
-                    <button onclick="goToGym()">Тренуватися на брусах (+3 сили, -15 ситості)</button>
-                    <button class="special" onclick="blackMarketDeal()">Пошукати нелегальний заробіток у цеху</button>
-                `;
-            } else if (p.phase === 2) {
-                document.getElementById('loc-name').innerText = "ЛОКАЛЬНИЙ СЕКТОР // ДВІР";
-                document.getElementById('loc-desc').innerText = "Час прогулянки. Відкриті двері тюремного ларка, на лавках збираються арештанти для обговорення новин.";
-                
-                box.innerHTML = `
-                    <button onclick="openStore()">Відвідати тюремний ларек / їдальню</button>
-                    <button onclick="talkToBosses()">Обговорити питання з «авторитетами» (+2 авторитету)</button>
-                    <button onclick="searchYardCaches()">Шукати схрони та заначки у дворі</button>
-                    <button class="primary" onclick="nextPhase()">Перейти до вечірнього часу</button>
-                `;
-            } else if (p.phase === 3) {
-                document.getElementById('loc-name').innerText = "БАРАК // ВЕЧІРНІЙ ЗБІР";
-                document.getElementById('loc-desc').innerText = "Сонце сідає за бетонні паркани з колючим дротом. У бараку готують вечірній чай і діляться тюремними історіями.";
-                
-                box.innerHTML = `
-                    <button onclick="eatInCell()">Перекусити у камері пакунком (-30 грн, +30 ситості)</button>
-                    <button class="primary" onclick="nextPhase()">Готуватися до нічного відбою</button>
-                `;
-            } else if (p.phase === 4) {
-                document.getElementById('loc-name').innerText = "КАМЕРА // НІЧНИЙ ВІДБІЙ";
-                document.getElementById('loc-desc').innerText = "Відбій. Усі вогні приглушені. Час повноцінно відпочити та відновити сили після важкого тюремного дня.";
-                
-                box.innerHTML = `
-                    <button class="primary" onclick="sleepNight()">Лягти спати до ранку</button>
-                `;
-            }
-        }
+function render(){
+  const A=document.getElementById('acts');
+  const L=document.getElementById('loc');
+  const D=document.getElementById('desc');
+  let h='';
 
-        function nextPhase() {
-            playClick();
-            p.phase++;
+  if(P.shizo>0){
+    L.textContent='ШІЗО // КАРЦЕР';
+    D.textContent=`Ти в штрафному ізоляторі. Залишилось днів: ${P.shizo}. Холодно, голодно, темно.`;
+    h+=`<button class="primary" onclick="shizoDay()">Пережити день у ШІЗО</button>`;
+    h+=`<button onclick="openInv()">📦 Інвентар</button>`;
+    A.innerHTML=h;return;
+  }
 
-            // Шанс на випадкову подію
-            if (Math.random() < 0.3 && p.phase < 4) {
-                triggerEvent();
-                return;
-            }
+  if(P.phase===0){
+    L.textContent='ПЛАЦ // ПЕРЕВІРКА';
+    D.textContent='Шеренга на холодному плацу. Наглядачі рахують голови. Хто ворухнувся — отримає.';
+    h+=`<button onclick="aStand()">Вистояти перевірку</button>`;
+    h+=`<button class="primary" onclick="aBribe()">Хабар наглядачам (−35💵)</button>`;
+    if(P.auth>=8)h+=`<button class="special" onclick="aSkipLine()">Встати з «правильними» (+шанс)</button>`;
+  } else if(P.phase===1){
+    L.textContent='ПРОМЗОНА // ЦЕХ';
+    D.textContent='Станки, пил, бригадир з палицею. План — святе. Або шукай ліве.';
+    h+=`<button onclick="aWork()">Працювати (+гроші, −🍞)</button>`;
+    h+=`<button onclick="aGym()">Качалка / бруси (+💪)</button>`;
+    h+=`<button class="special" onclick="aLeft()">Лівий заробіток (ризик)</button>`;
+    if(P.str>=18)h+=`<button class="success" onclick="aHardWork()">Важка робота (+більше $)</button>`;
+  } else if(P.phase===2){
+    L.textContent='ДВІР // ПРОГУЛЯНКА';
+    D.textContent='Ларьок відкритий. На лавках — свої і чужі. Можна торгувати, битися, грати, шукати.';
+    h+=`<button onclick="openShop()">🛒 Ларьок</button>`;
+    h+=`<button onclick="aTalk()">Поговорити з авторитетами</button>`;
+    h+=`<button onclick="aSearch()">Шукати заначки</button>`;
+    h+=`<button class="danger" onclick="aFight()">Розборка</button>`;
+    h+=`<button class="special" onclick="aGamble()">Карти / кістки</button>`;
+    if(P.quest)h+=`<button class="success" onclick="aQuest()">📋 Квест: ${P.quest.t}</button>`;
+    else if(chance(.35)||P.day%3===0)h+=`<button class="success" onclick="aGetQuest()">📋 Пошукати доручення</button>`;
+  } else if(P.phase===3){
+    L.textContent='БАРАК // ВЕЧІР';
+    D.textContent='Чай, маляви, тихі розмови. Завтра знову плац.';
+    h+=`<button onclick="aEat()">Поїсти (пакунок / 30💵)</button>`;
+    h+=`<button onclick="aLetter()">Написати маляву</button>`;
+    if(P.debt>0)h+=`<button class="danger" onclick="aPayDebt()">Погасити борг (${P.debt}💵)</button>`;
+    if(P.day>=6&&P.auth>=10)h+=`<button class="danger" onclick="aEscape()">💀 План втечі</button>`;
+    if(P.day>=10&&P.auth>=20&&P.str>=20)h+=`<button class="special" onclick="aThrone()">Спробувати стати «паханом»</button>`;
+  } else if(P.phase===4){
+    L.textContent='КАМЕРА // НІЧ';
+    D.textContent='Відбій. Темрява. Хтось хропе, хтось шепочеться.';
+    h+=`<button class="primary" onclick="aSleep()">Спати (+❤️)</button>`;
+    h+=`<button onclick="aNightTrain()">Тихе тренування (+1💪, −🍞)</button>`;
+  }
 
-            if (p.phase > 4) {
-                p.phase = 0;
-                p.day++;
-                p.food -= 20;
+  h+=`<button onclick="openInv()">📦 Інвентар</button>`;
+  if(P.phase===2||P.phase===3)h+=`<button class="primary" onclick="next(true)">Далі →</button>`;
+  if(P.phase===4)h+=`<button class="muted" onclick="doReset()">Скинути гру</button>`;
+  h+=`<button class="muted" onclick="toggleSnd()">🔊 Звук: ${P.snd?'ON':'OFF'}</button>`;
+  A.innerHTML=h;
+}
 
-                // Перевірка касти за авторитетом
-                if (p.auth >= 20) p.caste = "Блатний";
-                else if (p.auth >= 10) p.caste = "Міцний мужик";
-                else p.caste = "Мужик";
+function next(force){
+  click();
+  P.phase++;
+  if(P.phase<5 && chance(.30)){eventRand();return}
+  if(P.phase>4)endDay();
+  else ui();
+}
 
-                if (p.food <= 0) {
-                    p.food = 0;
-                    p.hp -= 25;
-                    log("У вас критичний виснажливий голод! Здоров'я падає.");
-                }
-                if (p.hp <= 0) {
-                    alert("ГРА ЗАВЕРШЕНА: Ваш організм не витримав випробувань у колонії.");
-                    location.reload();
-                }
-            }
-            updateUI();
-        }
+function endDay(){
+  P.phase=0;P.day++;
+  P.food=clamp(P.food-16,0,100);
+  if(P.debt>0){
+    const i=Math.ceil(P.debt*.08);
+    P.debt+=i;
+    log(`Борг +${i} (відсотки). Разом ${P.debt}`);
+  }
+  if(P.food<=0){
+    P.food=0;P.hp=clamp(P.hp-20,0,100);
+    log('Голод з\'їдає тебе (−20❤️)');toast('Голод!');
+  }
+  if(P.hp<=0){gameOver('Організм здався.');return}
+  if(P.day===15)log('Половина місяця за ґратами. Ти вже не новачок.');
+  if(P.day===30&&P.auth>=25)log('Місяць. Дехто вже киває тобі з повагою.');
+  ui();toast('День '+P.day);
+}
 
-        function bribeGuard() {
-            playClick();
-            if (p.money < 35) { alert("Недостатньо купонів!"); return; }
-            p.money -= 35;
-            log("Наглядачі закрили очі на ваші дрібні проступки.");
-            nextPhase();
-        }
+function gameOver(reason,win){
+  save();
+  const box=document.getElementById('mbox');
+  box.innerHTML=`
+    <h3 style="color:\( {win?'var(--green)':'var(--red)'}"> \){win?'🏆 КІНЕЦЬ':'💀 КІНЕЦЬ ГРИ'}</h3>
+    <p>${reason}</p>
+    <p class="tag">Днів: \( {P.day} · ⭐ \){P.auth} · 💪${P.str} · ${P.caste} · Боїв: ${P.fights}</p>
+    <div class="row">
+      <button class="primary" style="text-align:center" onclick="localStorage.removeItem('${SK}');location.reload()">Нова гра</button>
+    </div>`;
+  document.getElementById('modal').classList.add('show');
+  win?ok():bad();
+}
 
-        function doWork() {
-            playClick();
-            if (p.food < 20) { alert("Ви надто голодні для роботи, спочатку поїжте!"); return; }
-            p.food -= 20;
-            p.money += 60;
-            log("Відпрацьовано повну зміну на виробництві. Зроблено план (+60 грн).");
-            nextPhase();
-        }
+function goPhase(){
+  if(P.phase>4)endDay();else ui();
+}
 
-        function goToGym() {
-            playClick();
-            if (p.food < 15) { alert("Недостатньо сил для тренувань на голодний шлунок!"); return; }
-            p.food -= 15;
-            p.str += 3;
-            log("Інтенсивні силові тренування у камері: +3 до сили.");
-            nextPhase();
-        }
+function aStand(){
+  click();
+  if(chance(.14)){P.hp=clamp(P.hp-8,0,100);log('Наглядач причепився (−8❤️)');toast('Стусан');bad()}
+  else log('Перевірка спокійна.');
+  P.phase++;goPhase();
+}
+function aBribe(){
+  click();
+  if(P.money<35){toast('Немає грошей');return}
+  P.money-=35;log('Хабар прийнято. Наглядачі «сліпі».');toast('−35💵');
+  P.phase++;goPhase();
+}
+function aSkipLine(){
+  click();
+  if(chance(.55+P.auth*.01)){P.auth+=1;log('Встав з правильними. +1⭐');ok()}
+  else{P.hp=clamp(P.hp-6,0,100);log('Наглядач помітив (−6❤️)');bad()}
+  P.phase++;goPhase();
+}
+function aWork(){
+  click();
+  if(P.food<18){toast('Занадто голодний');return}
+  P.food-=18;
+  let pay=55+rnd(0,15);
+  if(P.str>=20)pay+=12;
+  if(P.caste==='Блатний'||P.caste==='Авторитет')pay+=10;
+  P.money+=pay;log(`Зміна: +${pay}💵`);toast('+'+pay+'💵');ok();
+  P.phase++;goPhase();
+}
+function aHardWork(){
+  click();
+  if(P.food<25){toast('Немає сил');return}
+  P.food-=25;P.hp=clamp(P.hp-5,0,100);
+  const pay=90+rnd(0,40);P.money+=pay;
+  log(`Важка зміна: +${pay}💵, −5❤️`);toast('+'+pay);ok();
+  P.phase++;goPhase();
+}
+function aGym(){
+  click();
+  if(P.food<12){toast('Голодний — не качайся');return}
+  P.food-=12;
+  const g=P.str<20?3:P.str<35?2:1;
+  P.str+=g;log(`Тренування +${g}💪 (зараз ${P.str})`);toast('+'+g+'💪');
+  P.phase++;goPhase();
+}
+function aLeft(){
+  click();
+  const ch=.40+Math.min(.28,P.str*.007)+Math.min(.12,P.auth*.005);
+  if(chance(ch)){
+    const g=rnd(50,140);P.money+=g;
+    log(`Ліве пройшло: +${g}💵`);toast('+'+g);ok();
+  }else{
+    if(chance(.35)){P.shizo=2;log('Спіймали на лівому → ШІЗО 2 дні');toast('ШІЗО!');bad()}
+    else{P.hp=clamp(P.hp-16,0,100);log('Бригадир відлупцював (−16❤️)');toast('−16❤️');bad()}
+  }
+  P.phase++;goPhase();
+}
+function aTalk(){
+  click();
+  P.auth+=2;
+  if(chance(.25)){P.auth+=1;log('Глибока розмова з авторитетами (+3⭐)');}
+  else log('Поговорили. +2⭐');
+  toast('+⭐');P.phase++;goPhase();
+}
+function aSearch(){
+  click();
+  const r=Math.random();
+  if(r<.5){const m=rnd(15,70);P.money+=m;log(`Заначка: +${m}💵`);toast('+'+m)}
+  else if(r<.68){add('cigarettes');log('Знайшов цигарки');toast('+цигарки')}
+  else if(r<.80){add('foodpack');log('Знайшов пакунок');toast('+їжа')}
+  else if(r<.92){P.hp=clamp(P.hp-12,0,100);log('Чужа територія (−12❤️)');toast('Конфлікт');bad()}
+  else log('Нічого.');
+  P.phase++;goPhase();
+}
+function aFight(){
+  click();
+  modal(`
+    <h3 style="color:var(--red)">⚔️ РОЗБОРКА</h3>
+    <p>Кинули виклик. Битися чи давити авторитетом?</p>
+    <div class="row">
+      <button class="danger" onclick="fightGo('hit')">Битися</button>
+      <button class="primary" onclick="fightGo('talk')">Вмовити (⭐)</button>
+      <button onclick="closeM()">Відійти</button>
+    </div>`);
+}
+function fightGo(m){
+  closeM();click();
+  if(m==='talk'){
+    if(P.auth>=14||chance(.3+P.auth*.02)){P.auth+=1;log('Розрулив словами +1⭐');ok()}
+    else{P.hp=clamp(P.hp-14,0,100);P.auth=Math.max(-8,P.auth-1);log('Не вийшло (−14❤️ −1⭐)');bad()}
+  }else{
+    let pow=P.str+rnd(0,12);
+    let knife=false;
+    if(inv('knife')>0&&confirm('Використати заточку? (+6, зникне)')){take('knife');pow+=6;knife=true}
+    const enemy=14+rnd(0,20)+P.day*.25;
+    if(pow>=enemy){
+      const g=rnd(30,80);P.money+=g;P.auth+=2;P.fights++;
+      P.hp=clamp(P.hp-rnd(2,10),0,100);
+      log(`Переміг\( {knife?' з заточкою':''}. + \){g}💵 +2⭐`);ok();toast('Перемога');
+    }else{
+      P.hp=clamp(P.hp-rnd(18,32),0,100);P.auth=Math.max(-8,P.auth-2);P.fights++;
+      log('Програв. Побили.');bad();toast('Поразка');
+      if(P.hp<=0){gameOver('Забили у дворі.');return}
+    }
+  }
+  P.phase++;goPhase();
+}
+function aGamble(){
+  click();
+  modal(`
+    <h3 style="color:var(--purple)">🎲 ГРА</h3>
+    <p>Ставка 30💵. Виграш x2 або все втратиш. Авторитет трохи впливає.</p>
+    <div class="row">
+      <button class="special" onclick="gambleGo()">Поставити 30</button>
+      <button onclick="closeM()">Відійти</button>
+    </div>`);
+}
+function gambleGo(){
+  closeM();click();
+  if(P.money<30){toast('Немає 30');return}
+  P.money-=30;
+  const win=chance(.42+Math.min(.12,P.auth*.004));
+  if(win){P.money+=60;P.auth+=1;log('Виграв у кості +30 чистими, +1⭐');ok();toast('+30')}
+  else{log('Програв 30💵');bad();toast('−30')}
+  P.phase++;goPhase();
+}
+function aEat(){
+  click();
+  if(inv('foodpack')>0){take('foodpack');P.food=clamp(P.food+40,0,100);log('З\'їв пакунок +40🍞');toast('+40🍞');ui();return}
+  if(P.money<30){toast('Немає грошей і пакунків');return}
+  P.money-=30;P.food=clamp(P.food+30,0,100);log('Купив перекус +30🍞');toast('+30🍞');ui();
+}
+function aLetter(){
+  click();
+  if(inv('paper')>0)take('paper');
+  else if(P.money>=20)P.money-=20;
+  else{toast('Потрібен папір або 20💵');return}
+  const r=Math.random();
+  if(r<.45){P.auth+=2;log('Малява дійшла +2⭐');ok()}
+  else if(r<.75){const m=rnd(25,70);P.money+=m;log(`Підтримка з волі +${m}💵`);ok()}
+  else{P.hp=clamp(P.hp-6,0,100);log('Маляву перехопили (−6❤️)');bad()}
+  ui();
+}
+function aPayDebt(){
+  click();
+  if(P.money<P.debt){toast('Не вистачає на весь борг');return}
+  P.money-=P.debt;log(`Борг ${P.debt} погашено.`);P.debt=0;P.auth+=1;toast('Борг закрито');ok();ui();
+}
+function aEscape(){
+  click();
+  modal(`
+    <h3 style="color:var(--red)">💀 ВТЕЧА</h3>
+    <p>Шанс \~${Math.round((.07+Math.min(.22,P.str*.005)+Math.min(.14,P.auth*.004))*100)}%. Провал = ШІЗО / смерть.</p>
+    <div class="row">
+      <button class="danger" onclick="escapeGo()">Спробувати</button>
+      <button onclick="closeM()">Ні</button>
+    </div>`);
+}
+function escapeGo(){
+  closeM();P.escapes++;click();
+  const ch=.07+Math.min(.22,P.str*.005)+Math.min(.14,P.auth*.004);
+  if(chance(ch)){
+    gameOver(`Ти вирвався на волю після ${P.day} днів. Історія триває вже без ґрат.`,true);
+  }else{
+    P.hp=clamp(P.hp-28,0,100);P.auth=Math.max(-8,P.auth-4);P.money=Math.max(0,P.money-60);
+    P.shizo=3;log('Втеча провалена. ШІЗО 3 дні.');bad();toast('Провал');
+    if(P.hp<=0)gameOver('Втеча коштувала життя.');
+    else ui();
+  }
+}
+function aThrone(){
+  click();
+  modal(`
+    <h3 style="color:var(--purple)">👑 ПАХАН СЕКТОРА</h3>
+    <p>Спроба сісти на «трон». Потрібна сила і повага. Ризик високого рівня.</p>
+    <div class="row">
+      <button class="special" onclick="throneGo()">Кинути виклик</button>
+      <button onclick="closeM()">Рано</button>
+    </div>`);
+}
+function throneGo(){
+  closeM();click();
+  const ch=.25+Math.min(.3,P.str*.008)+Math.min(.25,P.auth*.008);
+  if(chance(ch)){
+    P.auth=Math.max(P.auth,40);P.caste='Блатний';
+    log('Ти став паханом сектора. Всі це зрозуміли.');
+    gameOver(`Пахан сектора. День ${P.day}. Повага безмежна. Це твоя зона.`,true);
+  }else{
+    P.hp=clamp(P.hp-35,0,100);P.auth=Math.max(-5,P.auth-8);
+    log('Не вийшло. Жорстоко опустили.');bad();
+    if(P.hp<=0)gameOver('За амбіції заплатив життям.');
+    else ui();
+  }
+}
+function aSleep(){
+  click();
+  P.hp=clamp(P.hp+22,0,100);
+  if(chance(.18)){nightEv();return}
+  log('Сон +22❤️');P.phase++;goPhase();
+}
+function aNightTrain(){
+  click();
+  if(P.food<10){toast('Немає сил');return}
+  P.food-=10;P.str+=1;P.hp=clamp(P.hp+8,0,100);
+  log('Нічне тренування +1💪');P.phase++;goPhase();
+}
+function shizoDay(){
+  click();
+  P.shizo--;
+  P.food=clamp(P.food-25,0,100);
+  P.hp=clamp(P.hp-8,0,100);
+  log(`ШІЗО. Залишилось ${P.shizo} дн.`);
+  if(P.food<=0){P.food=0;P.hp=clamp(P.hp-15,0,100)}
+  if(P.hp<=0){gameOver('Помер у карцері.');return}
+  if(P.shizo<=0){log('Випустили з ШІЗО.');toast('На волю (в зону)');P.phase=0}
+  P.day++;
+  ui();
+}
 
-        function blackMarketDeal() {
-            playClick();
-            let chance = Math.random();
-            if (chance > 0.45) {
-                let gain = Math.floor(Math.random() * 80) + 40;
-                p.money += gain;
-                log(`Успішно виконано нелегальну справу в цеху: +${gain} грн!`);
-            } else {
-                p.hp -= 15;
-                log("Бригадир помітив ваші махінації та влаштував прочуханку (-15 HP).");
-            }
-            nextPhase();
-        }
+function aGetQuest(){
+  click();
+  const qs=[
+    {t:'Передати маляву',need:'paper',orMoney:15,rewM:50,rewA:2,d:'Передати записку без шуму'},
+    {t:'Достати цигарки',need:'cigarettes',n:1,rewM:40,rewA:1,d:'Принести пачку «кому треба»'},
+    {t:'Знайти мило',need:'soap',n:1,rewM:35,rewA:1,d:'Мило — валюта і ліки'},
+    {t:'Заробити 80 грн',needMoney:80,rewA:3,d:'Зібрати 80 і віддати частку'}
+  ];
+  P.quest=qs[rnd(0,qs.length-1)];
+  log('Взяв доручення: '+P.quest.t);
+  toast('Квест отримано');
+  ui();
+}
+function aQuest(){
+  click();
+  const q=P.quest;if(!q)return;
+  let okk=false;
+  if(q.needMoney){
+    if(P.money>=q.needMoney){P.money-=Math.floor(q.needMoney*.4);okk=true}
+  }else if(q.need){
+    if(q.orMoney&&P.money>=q.orMoney&&inv(q.need)<1){P.money-=q.orMoney;okk=true}
+    else if(inv(q.need)>=(q.n||1)){take(q.need,q.n||1);okk=true}
+  }
+  if(okk){
+    if(q.rewM)P.money+=q.rewM;
+    if(q.rewA)P.auth+=q.rewA;
+    log(`Квест «${q.t}» виконано.`);ok();toast('Квест ✓');
+    P.quest=null;
+  }else toast('Ще не виконано умови');
+  ui();
+}
 
-        function openStore() {
-            playClick();
-            const modal = document.getElementById('modal-overlay');
-            const body = document.getElementById('modal-body');
-            
-            body.innerHTML = `
-                <h3 style="color:var(--yellow); margin-top:0;">🛒 ТЮРЕМНИЙ ЛАРЕК</h3>
-                <p style="font-size:12px;">Оберіть продукт для покупки:</p>
-                <div style="display:flex; flex-direction:column; gap:8px; margin-top:10px;">
-                    <button onclick="buyGoods('food', 35, 35)">Ситний обід (-35 грн, +35 їжі)</button>
-                    <button onclick="buyGoods('tea', 50, 0)">Якісний чай (-50 грн, +3 авторитету)</button>
-                    <button style="background:#30363d;" onclick="closeModal()">Закрити ларек</button>
-                </div>
-            `;
-            modal.style.display = 'flex';
-        }
+function openShop(){
+  click();
+  const d=disc();
+  let h=`<h3 style="color:var(--yellow)">🛒 ЛАРЬОК</h3><p class="tag">Знижка ${Math.round(d*100)}% · Баланс ${P.money}💵</p><div class="row">`;
+  for(const[id,it] of Object.entries(ITEMS)){
+    const pr=Math.max(5,Math.floor(it.p*(1-d)));
+    h+=`<button onclick="buy('\( {id}', \){pr})">${it.n} — \( {pr}💵<br><span class="tag"> \){it.d}</span></button>`;
+  }
+  h+=`<button onclick="closeM()">Закрити</button></div>`;
+  modal(h);
+}
+function buy(id,pr){
+  click();
+  if(P.money<pr){toast('Не вистачає');return}
+  P.money-=pr;
+  if(id==='tea'){P.auth+=3;log('Розпив чай +3⭐');toast('+3⭐')}
+  else{add(id);log('Куплено: '+ITEMS[id].n);toast('+'+ITEMS[id].n)}
+  closeM();ui();
+}
+function openInv(){
+  click();
+  const keys=Object.keys(P.inv).filter(k=>P.inv[k]>0);
+  let h=`<h3 style="color:var(--blue)">📦 ІНВЕНТАР</h3>`;
+  if(!keys.length)h+=`<p class="tag">Порожньо</p>`;
+  else keys.forEach(id=>{
+    const it=ITEMS[id]||{n:id,d:''};
+    h+=`<div class="inv-row"><div><b>\( {it.n}</b> × \){P.inv[id]}<div class="tag">${it.d||''}</div></div>
+      <button style="width:auto;padding:6px 10px" onclick="useItem('${id}')">Юз</button></div>`;
+  });
+  h+=`<button style="margin-top:8px" onclick="closeM()">Закрити</button>`;
+  modal(h);
+}
+function useItem(id){
+  click();
+  if(id==='knife'){toast('Заточку тримай для бою');return}
+  if(!take(id))return;
+  if(id==='cigarettes'){P.auth+=1;log('Цигарки +1⭐');toast('+1⭐')}
+  else if(id==='foodpack'){P.food=clamp(P.food+40,0,100);log('+40🍞');toast('+40🍞')}
+  else if(id==='medkit'){P.hp=clamp(P.hp+30,0,100);log('+30❤️');toast('+30❤️')}
+  else if(id==='vodka'){P.auth+=2;P.hp=clamp(P.hp-10,0,100);P.food=clamp(P.food+15,0,100);log('Брага: +2⭐ −10❤️ +15🍞');toast('Брага')}
+  else if(id==='soap'){P.hp=clamp(P.hp+8,0,100);log('Мило +8❤️');toast('+8❤️')}
+  else if(id==='tea'){P.auth+=3;log('Чай +3⭐');toast('+3⭐')}
+  else if(id==='paper'){add('paper');toast('Папір для маляви');return}
+  closeM();ui();
+}
 
-        function buyGoods(type, cost, fVal) {
-            playClick();
-            if (p.money < cost) { alert("Недостатньо коштів!"); return; }
-            p.money -= cost;
-            if (type === 'food') {
-                p.food = Math.min(100, p.food + fVal);
-                log("Придбано та спожито продукти харчування.");
-            } else if (type === 'tea') {
-                p.auth += 3;
-                log("Пригостили арештантів чаєм. Авторитет зріс.");
-            }
-            closeModal();
-            updateUI();
-        }
-
-        function talkToBosses() {
-            playClientClick = true;
-            playClick();
-            p.auth += 2;
-            log("Розмова з правильними людьми підвищила вашу повагу у колі ув'язнених.");
-            nextPhase();
-        }
-
-        function searchYardCaches() {
-            playClick();
-            let found = Math.floor(Math.random() * 60) + 20;
-            p.money += found;
-            log(`Знайдено заначку під плитами двору: +${found} грн!`);
-            nextPhase();
-        }
-
-        function eatInCell() {
-            playClick();
-            if (p.money < 30) { alert("Немає грошей на пакунок."); return; }
-            p.money -= 30;
-            p.food = Math.min(100, p.food + 30);
-            log("Перекусиба запасами з камери.");
-            updateUI();
-        }
-
-        function sleepNight() {
-            playClick();
-            p.hp = Math.min(100, p.hp + 20);
-            nextPhase();
-        }
-
-        function closeModal() {
-            document.getElementById('modal-overlay').style.display = 'none';
-        }
-
-        function triggerEvent() {
-            const modal = document.getElementById('modal-overlay');
-            const body = document.getElementById('modal-body');
-            
-            const evs = [
-                {
-                    title: "🚨 ПОЗАПЛАНОВИЙ ШМОН",
-                    desc: "Адміністрація підняла весь барак на ногах! Проводиться жорсткий струм та обшук особистих речей.",
-                    action: () => {
-                        p.money = Math.max(0, p.money - 40);
-                        alert("Шмон завершено. Охорона вилучила частину готівки за порушення.");
-                        log("Шмон у камері: втрачено 40 грн.");
-                        closeModal();
-                        updateUI();
-                    }
-                },
-                {
-                    title: "🤝 ВИГОДНА ПРОПОЗИЦІЯ",
-                    desc: "Один із засуджених просить допомогти передати записку в сусідній барак за винагороду.",
-                    action: () => {
-                        p.money += 80;
-                        p.auth += 1;
-                        alert("Записку передано успішно! Ви отримали подяку та гроші.");
-                        log("Виконано доручення: +80 грн.");
-                        closeModal();
-                        updateUI();
-                    }
-                }
-            ];
-
-            let ev = evs[Math.floor(Math.random() * evs.length)];
-            body.innerHTML = `
-                <h3 style="color:var(--accent); margin-top:0;">${ev.title}</h3>
-                <p style="font-size:12px; line-height:1.4;">${ev.desc}</p>
-                <div style="margin-top:15px;">
-                    <button class="primary" style="width:100%; text-align:center;" onclick="window.currentEventAction()">ПРИЙНЯТИ НАСЛІДКИ</button>
-                </div>
-            `;
-            window.currentEventAction = ev.action;
-            modal.style.display = 'flex';
-        }
-
-        // Автоматичний старт та ініціалізація
-        updateUI();
-    </script>
-</body>
-</html>
+function eventRand(){
+  const evs=[
+    {t:'🚨 ШМОН',d:'Повний обшук барака.',f:()=>{const l=Math.min(P.money,rnd(25,55));P.money-=l;log(`Шмон −${l}💵`);toast('−'+l)}},
+    {t:'🤝 ПРОПОЗИЦІЯ',d:'Передати записку за винагороду.',f:()=>{P.money+=65;P.auth+=1;log('+65💵 за записку');toast('+65')}},
+    {t:'🚬 ОБМІН',d:'Дрібна послуга в обмін на річ.',f:()=>{chance(.5)?(add('cigarettes'),toast('+цигарки')):(add('foodpack'),toast('+їжа'));log('Обмін пройшов')}},
+    {t:'💸 ПОЗИКА',d:'Пропонують 100 під відсотки.',choice:true,
+      yes:()=>{P.money+=100;P.debt+=125;log('Борг 125 за 100');toast('+100 (борг)')},
+      no:()=>{log('Відмовився від боргу')}},
+    {t:'🏥 МЕДЧАСТИНА',d:'Можна підлататися за 45💵.',f:()=>{if(P.money>=45&&P.hp<90){P.money-=45;P.hp=clamp(P.hp+25,0,100);log('+25❤️ за 45');toast('+25❤️')}else log('Медик байдужий')}},
+    {t:'📢 ЧУТКИ',d:'По зоні пішли розмови.',f:()=>{if(P.auth>=12){P.auth+=1;log('Чутки на твою користь +1⭐')}else log('Ти ще тінь')}},
+    {t:'⚔️ НАЇЗД',d:'Хтось шукає конфлікту прямо зараз.',f:()=>{if(P.str+P.auth>25||chance(.4)){P.auth+=1;log('Дав відсіч +1⭐');ok()}else{P.hp=clamp(P.hp-15,0,100);log('Отримав (−15❤️)');bad()}}},
+    {t:'📦 ПЕРЕДАЧА',d:'З волі щось прийшло (або ні).',f:()=>{if(chance(.55)){const m=rnd(40,100
