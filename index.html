@@ -93,6 +93,8 @@ button:disabled{opacity:.4;pointer-events:none}
   opacity:0;transition:opacity .2s;pointer-events:none;max-width:92%;text-align:center;
 }
 .toast.show{opacity:1}
+.bar{height:3px;background:#21262d;border-radius:2px;margin-top:2px;overflow:hidden}
+.bar>i{display:block;height:100%;border-radius:2px;transition:width .3s}
 .hp-ok{color:var(--green)}.hp-mid{color:var(--yellow)}.hp-low{color:var(--red)}
 .tag{font-size:9px;opacity:.7}
 #boot{
@@ -230,6 +232,10 @@ function ui(){
   save();
 }
 
+function btn(html,fn,cls=''){
+  return `<button class="${cls}" onclick="(${fn.toString()})()">${html}</button>`;
+}
+
 function render(){
   const A=document.getElementById('acts');
   const L=document.getElementById('loc');
@@ -291,6 +297,7 @@ function render(){
 
 function next(force){
   click();
+  if(!force && (P.phase===2||P.phase===3)){/* wait for explicit */}
   P.phase++;
   if(P.phase<5 && chance(.30)){eventRand();return}
   if(P.phase>4)endDay();
@@ -333,6 +340,7 @@ function goPhase(){
   if(P.phase>4)endDay();else ui();
 }
 
+/* ===== ACTIONS ===== */
 function aStand(){
   click();
   if(chance(.14)){P.hp=clamp(P.hp-8,0,100);log('Наглядач причепився (−8❤️)');toast('Стусан');bad()}
@@ -484,7 +492,7 @@ function aEscape(){
   click();
   modal(`
     <h3 style="color:var(--red)">💀 ВТЕЧА</h3>
-    <p>Шанс \~${Math.round((.07+Math.min(.22,P.str*.005)+Math.min(.14,P.auth*.004))*100)}%. Провал = ШІЗО / смерть.</p>
+    <p>Шанс ~${Math.round((.07+Math.min(.22,P.str*.005)+Math.min(.14,P.auth*.004))*100)}%. Провал = ШІЗО / смерть.</p>
     <div class="row">
       <button class="danger" onclick="escapeGo()">Спробувати</button>
       <button onclick="closeM()">Ні</button>
@@ -551,6 +559,7 @@ function shizoDay(){
   ui();
 }
 
+/* ===== QUEST ===== */
 function aGetQuest(){
   click();
   const qs=[
@@ -583,6 +592,7 @@ function aQuest(){
   ui();
 }
 
+/* ===== SHOP / INV ===== */
 function openShop(){
   click();
   const d=disc();
@@ -629,6 +639,7 @@ function useItem(id){
   closeM();ui();
 }
 
+/* ===== EVENTS ===== */
 function eventRand(){
   const evs=[
     {t:'🚨 ШМОН',d:'Повний обшук барака.',f:()=>{const l=Math.min(P.money,rnd(25,55));P.money-=l;log(`Шмон −${l}💵`);toast('−'+l)}},
@@ -640,4 +651,72 @@ function eventRand(){
     {t:'🏥 МЕДЧАСТИНА',d:'Можна підлататися за 45💵.',f:()=>{if(P.money>=45&&P.hp<90){P.money-=45;P.hp=clamp(P.hp+25,0,100);log('+25❤️ за 45');toast('+25❤️')}else log('Медик байдужий')}},
     {t:'📢 ЧУТКИ',d:'По зоні пішли розмови.',f:()=>{if(P.auth>=12){P.auth+=1;log('Чутки на твою користь +1⭐')}else log('Ти ще тінь')}},
     {t:'⚔️ НАЇЗД',d:'Хтось шукає конфлікту прямо зараз.',f:()=>{if(P.str+P.auth>25||chance(.4)){P.auth+=1;log('Дав відсіч +1⭐');ok()}else{P.hp=clamp(P.hp-15,0,100);log('Отримав (−15❤️)');bad()}}},
-    {t:'📦 ПЕРЕДАЧА',d:'З волі щось прийшло (або ні).',f:()=>{if(chance(.55)){const m=rnd(40,100
+    {t:'📦 ПЕРЕДАЧА',d:'З волі щось прийшло (або ні).',f:()=>{if(chance(.55)){const m=rnd(40,100);P.money+=m;log(`Передача +${m}💵`);toast('+'+m)}else log('Передачу «загубили»')}}
+  ];
+  const e=evs[rnd(0,evs.length-1)];
+  if(e.choice){
+    modal(`<h3 style="color:var(--orange)">${e.t}</h3><p>${e.d}</p>
+      <div class="row"><button class="primary" onclick="evYes()">Так</button><button onclick="evNo()">Ні</button></div>`);
+    window._yes=()=>{e.yes();closeM();ui()};
+    window._no=()=>{e.no();closeM();ui()};
+  }else{
+    modal(`<h3 style="color:var(--orange)">${e.t}</h3><p>${e.d}</p>
+      <div class="row"><button class="primary" style="text-align:center" onclick="evDo()">ОК</button></div>`);
+    window._do=()=>{e.f();closeM();ui()};
+  }
+}
+function evYes(){window._yes&&window._yes()}
+function evNo(){window._no&&window._no()}
+function evDo(){window._do&&window._do()}
+
+function nightEv(){
+  modal(`<h3 style="color:var(--yellow)">🌙 НІЧ</h3>
+    <p>У коридорі метушня. Втрутитися?</p>
+    <div class="row">
+      <button class="special" onclick="nightHelp()">Допомогти</button>
+      <button onclick="nightSkip()">Спати далі</button>
+    </div>`);
+}
+function nightHelp(){
+  closeM();click();
+  if(chance(.55)){P.auth+=2;P.money+=25;log('Допоміг уночі +2⭐ +25');ok()}
+  else{P.hp=clamp(P.hp-12,0,100);log('Не туди вліз (−12❤️)');bad()}
+  P.hp=clamp(P.hp+22,0,100);P.phase++;goPhase();
+}
+function nightSkip(){
+  closeM();log('Не висовувався.');P.hp=clamp(P.hp+22,0,100);P.phase++;goPhase();
+}
+
+function modal(html){document.getElementById('mbox').innerHTML=html;document.getElementById('modal').classList.add('show')}
+function closeM(){document.getElementById('modal').classList.remove('show')}
+function toggleSnd(){P.snd=!P.snd;ui();toast('Звук '+(P.snd?'ON':'OFF'))}
+function doReset(){
+  if(confirm('Повністю скинути прогрес?')){localStorage.removeItem(SK);location.reload()}
+}
+
+function startGame(forceNew){
+  if(forceNew)localStorage.removeItem(SK);
+  load();
+  document.getElementById('boot').style.display='none';
+  if(!P.seenTut){
+    P.seenTut=true;
+    log('Порада: тримай ситість, качай силу, не лізь без авторитету.');
+  }
+  ui();
+}
+
+// expose for inline handlers
+window.aStand=aStand;window.aBribe=aBribe;window.aSkipLine=aSkipLine;
+window.aWork=aWork;window.aHardWork=aHardWork;window.aGym=aGym;window.aLeft=aLeft;
+window.aTalk=aTalk;window.aSearch=aSearch;window.aFight=aFight;window.fightGo=fightGo;
+window.aGamble=aGamble;window.gambleGo=gambleGo;window.aEat=aEat;window.aLetter=aLetter;
+window.aPayDebt=aPayDebt;window.aEscape=aEscape;window.escapeGo=escapeGo;
+window.aThrone=aThrone;window.throneGo=throneGo;window.aSleep=aSleep;window.aNightTrain=aNightTrain;
+window.shizoDay=shizoDay;window.aGetQuest=aGetQuest;window.aQuest=aQuest;
+window.openShop=openShop;window.buy=buy;window.openInv=openInv;window.useItem=useItem;
+window.next=next;window.closeM=closeM;window.toggleSnd=toggleSnd;window.doReset=doReset;
+window.evYes=evYes;window.evNo=evNo;window.evDo=evDo;
+window.nightHelp=nightHelp;window.nightSkip=nightSkip;window.startGame=startGame;
+</script>
+</body>
+</html>
