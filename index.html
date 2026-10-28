@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Відео готове 🎬</title>
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;background:#080808;color:white;
+  font-family:Arial,sans-serif;text-align:center;
+}
+header{
+  padding:20px;font-size:25px;font-weight:bold;
+  border-bottom:1px solid #333;
+}
+main{padding:35px 22px}
+.card{
+  max-width:380px;margin:25px auto;padding:25px 18px;
+  background:#191919;border-radius:18px;
+}
+button{
+  width:100%;padding:16px;border:0;border-radius:9px;
+  background:#fe2c55;color:white;font-size:18px;
+  font-weight:bold;margin-top:24px;
+}
+#loading,#scare{display:none}
+.track{
+  height:7px;background:#444;border-radius:9px;
+  overflow:hidden;margin-top:25px;
+}
+#bar{
+  height:100%;width:0;background:#25f4ee;
+}
+#scare{
+  position:fixed;inset:0;background:#000;
+  z-index:10;align-items:center;justify-content:center;
+  flex-direction:column;padding:15px;
+}
+#scare img{
+  width:100%;height:75vh;object-fit:contain;
+}
+#scare h2{color:#ff304f}
+</style>
+</head>
+<body>
+<header>♪ TikTok</header>
+<main id="intro">
+  <div class="card">
+    <div style="font-size:48px">▶</div>
+    <h2>Відео готове до перегляду</h2>
+    <p>Натисни, щоб підтвердити перегляд 🎁</p>
+    <button id="confirm">Підтвердити</button>
+  </div>
+</main>
+
+<main id="loading">
+  <h2>Завантаження відео…</h2>
+  <p id="percent">0%</p>
+  <div class="track"><div id="bar"></div></div>
+  <p>Будь ласка, зачекай</p>
+</main>
+
+<div id="scare">
+  <img id="face" src="/scary.jpg" alt="Страшне обличчя">
+  <h2>АХАХА 😂 ТЕБЕ РОЗІГРАЛИ!</h2>
+  <button id="close">Закрити</button>
+</div>
+
+<script>
+const confirmBtn=document.getElementById('confirm');
+const loading=document.getElementById('loading');
+const intro=document.getElementById('intro');
+const scare=document.getElementById('scare');
+const bar=document.getElementById('bar');
+const percent=document.getElementById('percent');
+const audio=new Audio('/scream.mp3');
+audio.volume=1;
+
+confirmBtn.onclick=()=>{
+  intro.style.display='none';
+  loading.style.display='block';
+  let n=0;
+  const timer=setInterval(()=>{
+    n+=10;
+    bar.style.width=n+'%';
+    percent.textContent=n+'%';
+    if(n>=100){
+      clearInterval(timer);
+      loading.style.display='none';
+      scare.style.display='flex';
+      audio.play().catch(()=>{});
+    }
+  },180);
+};
+
+document.getElementById('close').onclick=()=>{
+  audio.pause();
+  audio.currentTime=0;
+  scare.style.display='none';
+  intro.style.display='block';
+};
+</script>
+</body>
+</html>
