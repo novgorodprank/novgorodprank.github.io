@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="theme-color" content="#0b1220">
+<title>Графік чергувань</title>
+<style>
+:root {
+  --bg: #0b1220;
+  --panel: #121a2a;
+  --border: #2a3a55;
+  --text: #e8eef8;
+  --muted: #8b9bb4;
+  --duty: #f85149;
+  --rest: #3dd68c;
+  --off: #58a6ff;
+  --work: #8b9bb4;
+  --today: #e3b341;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 14px 12px 40px;
+  min-height: 100vh;
+}
+h1 { font-size: 18px; margin-bottom: 4px; }
+.sub { font-size: 12px; color: var(--muted); margin-bottom: 16px; line-height: 1.4; }
+.card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px;
+  margin-bottom: 12px;
+}
+label { display: block; font-size: 12px; color: var(--muted); margin-bottom: 6px; }
+input[type="date"], select, input[type="number"] {
+  width: 100%;
+  background: #0d1524;
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 11px 12px;
+  font-size: 15px;
+  font-family: inherit;
+  margin-bottom: 10px;
+}
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+button {
+  width: 100%;
+  background: #1a2740;
+  border: 1px solid var(--border);
+  color: var(--text);
+  border-radius: 10px;
+  padding: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 4px;
+}
+button.primary { border-color: #3d8bfd; color: #58a6ff; background: rgba(88,166,255,0.08); }
+button:active { transform: scale(0.98); }
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 12px 0;
+  font-size: 11px;
+}
+.leg {
+  display: flex; align-items: center; gap: 5px;
+  background: var(--panel); border: 1px solid var(--border);
+  border-radius: 999px; padding: 4px 10px;
+}
+.dot { width: 10px; height: 10px; border-radius: 50%; }
+.dot.duty { background: var(--duty); }
+.dot.rest { background: var(--rest); }
+.dot.off { background: var(--off); }
+.dot.work { background: var(--work); }
+
+.cal-head {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 10px;
+}
+.cal-head h2 { font-size: 15px; }
+.nav { display: flex; gap: 6px; }
+.nav button { width: auto; padding: 8px 12px; margin: 0; font-size: 13px; }
+
+.weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  margin-bottom: 4px;
+  text-align: center;
+  font-size: 10px;
+  color: var(--muted);
+}
+.weekdays span:nth-child(6), .weekdays span:nth-child(7) { color: var(--duty); opacity: 0.8; }
+
+.grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+}
+.day {
+  aspect-ratio: 1;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  background: #0d1524;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 600;
+  position: relative;
+  min-height: 44px;
+}
+.day.empty { border-color: transparent; background: transparent; }
+.day .n { font-size: 13px; }
+.day .t { font-size: 8px; margin-top: 2px; font-weight: 500; opacity: 0.95; line-height: 1; }
+.day.duty { background: rgba(248,81,73,0.18); border-color: var(--duty); color: #ff8b84; }
+.day.rest { background: rgba(61,214,140,0.15); border-color: var(--rest); color: #6ee7b0; }
+.day.off { background: rgba(88,166,255,0.15); border-color: var(--off); color: #93c5fd; }
+.day.work { color: var(--muted); }
+.day.today { box-shadow: 0 0 0 2px var(--today); }
+.day.weekend .n { opacity: 0.9; }
+
+.list { margin-top: 8px; }
+.item {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+.item:last-child { border-bottom: none; }
+.badge {
+  font-size: 11px; font-weight: 700;
+  padding: 3px 8px; border-radius: 999px;
+}
+.badge.duty { background: rgba(248,81,73,0.2); color: #ff8b84; }
+.badge.rest { background: rgba(61,214,140,0.2); color: #6ee7b0; }
+.badge.off { background: rgba(88,166,255,0.2); color: #93c5fd; }
+.rules {
+  font-size: 12px; color: var(--muted); line-height: 1.5;
+}
+.rules b { color: var(--text); }
+</style>
+</head>
+<body>
+
+<h1>📅 Графік чергувань</h1>
+<p class="sub">Добове кожні 4 дні. Відсипний — наступний день. Якщо чергування у вихідний — ще один вихідний після відсипного.</p>
+
+<div class="card">
+  <label for="anchor">Дата твого добового чергування</label>
+  <input type="date" id="anchor">
+
+  <div class="row2">
+    <div>
+      <label for="interval">Інтервал (днів)</label>
+      <input type="number" id="interval" value="4" min="2" max="14">
+    </div>
+    <div>
+      <label for="months">Показати місяців</label>
+      <input type="number" id="months" value="3" min="1" max="12">
+    </div>
+  </div>
+
+  <button type="button" class="primary" id="calc">Розрахувати</button>
+  <button type="button" id="todayBtn" style="margin-top:8px">Поставити сьогодні як чергування</button>
+</div>
+
+<div class="card rules">
+  <b>Правила:</b><br>
+  • Чергування (добове) — кожні <b id="intLabel">4</b> дні від вибраної дати<br>
+  • <b>Будній</b> (пн–пт): наступний день = <span style="color:var(--rest)">відсипний</span><br>
+  • <b>Вихідний</b> (сб–нд): наступний = <span style="color:var(--rest)">відсипний</span>, ще наступний = <span style="color:var(--off)">вихідний</span><br>
+  • Решта днів — звичайні / робочі
+</div>
+
+<div class="legend">
+  <span class="leg"><i class="dot duty"></i> Чергування</span>
+  <span class="leg"><i class="dot rest"></i> Відсипний</span>
+  <span class="leg"><i class="dot off"></i> Вихідний після</span>
+  <span class="leg"><i class="dot work"></i> Звичайний</span>
+</div>
+
+<div class="card" id="calCard" style="display:none">
+  <div class="cal-head">
+    <h2 id="monthTitle">—</h2>
+    <div class="nav">
+      <button type="button" id="prev">←</button>
+      <button type="button" id="next">→</button>
+    </div>
+  </div>
+  <div class="weekdays">
+    <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Нд</span>
+  </div>
+  <div class="grid" id="grid"></div>
+</div>
+
+<div class="card list" id="listCard" style="display:none">
+  <h2 style="font-size:14px;margin-bottom:8px">Найближчі дати</h2>
+  <div id="list"></div>
+</div>
+
+<script>
+const SK = 'duty_schedule_v1';
+const MONTHS = ['Січень','Лютий','Березень','Квітень','Травень','Червень','Липень','Серпень','Вересень','Жовтень','Листопад','Грудень'];
+const DOW = ['неділя','понеділок','вівторок','середу','четвер','п\'ятницю','суботу'];
+
+let anchor = null;
+let interval = 4;
+let viewYear, viewMonth;
+let map = new Map(); // key YYYY-MM-DD -> type
+
+function pad(n){ return n < 10 ? '0'+n : ''+n; }
+function key(d){ return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate()); }
+function startOfDay(d){ const x=new Date(d); x.setHours(12,0,0,0); return x; }
+function addDays(d, n){ const x=new Date(d); x.setDate(x.getDate()+n); return startOfDay(x); }
+function isWeekend(d){ const w=d.getDay(); return w===0||w===6; }
+
+function load(){
+  try{
+    const r = localStorage.getItem(SK);
+    if(r){
+      const o = JSON.parse(r);
+      if(o.anchor) document.getElementById('anchor').value = o.anchor;
+      if(o.interval) document.getElementById('interval').value = o.interval;
+      if(o.months) document.getElementById('months').value = o.months;
+    }
+  }catch(e){}
+  if(!document.getElementById('anchor').value){
+    const t = new Date();
+    document.getElementById('anchor').value = key(t);
+  }
+}
+
+function save(){
+  localStorage.setItem(SK, JSON.stringify({
+    anchor: document.getElementById('anchor').value,
+    interval: +document.getElementById('interval').value,
+    months: +document.getElementById('months').value
+  }));
+}
+
+function buildMap(){
+  map = new Map();
+  const aStr = document.getElementById('anchor').value;
+  if(!aStr) return;
+  interval = Math.max(2, Math.min(14, +document.getElementById('interval').value || 4));
+  document.getElementById('intLabel').textContent = interval;
+
+  anchor = startOfDay(new Date(aStr + 'T12:00:00'));
+  const months = Math.max(1, Math.min(12, +document.getElementById('months').value || 3));
+
+  // range: from ~1 month before anchor to months ahead
+  const from = addDays(anchor, -interval * 8);
+  const to = addDays(anchor, months * 31 + 5);
+
+  // generate duty days
+  // find first duty <= from by stepping back from anchor
+  let d = new Date(anchor);
+  while(d > from) d = addDays(d, -interval);
+  while(d < from) d = addDays(d, interval);
+
+  for(let cur = new Date(d); cur <= to; cur = addDays(cur, interval)){
+    const k = key(cur);
+    map.set(k, 'duty');
+
+    // next day always rest (відсипний)
+    const rest = addDays(cur, 1);
+    const rk = key(rest);
+    if(!map.has(rk) || map.get(rk) !== 'duty') map.set(rk, 'rest');
+
+    // if duty on weekend → extra day off after rest
+    if(isWeekend(cur)){
+      const off = addDays(cur, 2);
+      const ok = key(off);
+      if(!map.has(ok) || map.get(ok) === 'work') map.set(ok, 'off');
+      // if rest was overwritten by another duty, still try off
+    }
+  }
+
+  // conflict: if a day is duty, priority duty over rest/off
+  // already set duty first then rest only if not duty — good
+
+  // if rest day falls on another duty, duty wins (already)
+  // if off falls on duty, duty wins
+  for(const [k,v] of [...map.entries()]){
+    // ensure duties stay duties — re-mark all duties
+  }
+  // re-apply duties to be safe
+  for(let cur = new Date(d); cur <= to; cur = addDays(cur, interval)){
+    map.set(key(cur), 'duty');
+  }
+
+  viewYear = anchor.getFullYear();
+  viewMonth = anchor.getMonth();
+  save();
+  renderCal();
+  renderList(months);
+  document.getElementById('calCard').style.display = 'block';
+  document.getElementById('listCard').style.display = 'block';
+}
+
+function renderCal(){
+  document.getElementById('monthTitle').textContent = MONTHS[viewMonth] + ' ' + viewYear;
+  const grid = document.getElementById('grid');
+  grid.innerHTML = '';
+
+  const first = new Date(viewYear, viewMonth, 1, 12);
+  // Monday-first index: Mon=0 ... Sun=6
+  let startIdx = first.getDay() - 1;
+  if(startIdx < 0) startIdx = 6;
+
+  const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const todayK = key(startOfDay(new Date()));
+
+  for(let i=0;i<startIdx;i++){
+    const e=document.createElement('div');
+    e.className='day empty';
+    grid.appendChild(e);
+  }
+
+  for(let day=1; day<=daysInMonth; day++){
+    const dt = new Date(viewYear, viewMonth, day, 12);
+    const k = key(dt);
+    const type = map.get(k) || 'work';
+    const el = document.createElement('div');
+    el.className = 'day ' + type;
+    if(isWeekend(dt)) el.classList.add('weekend');
+    if(k === todayK) el.classList.add('today');
+
+    const labels = { duty: 'доб.', rest: 'відс.', off: 'вих.', work: '' };
+    el.innerHTML = '<span class="n">'+day+'</span>' + (labels[type] ? '<span class="t">'+labels[type]+'</span>' : '');
+    el.title = k + ' — ' + ({duty:'Чергування',rest:'Відсипний',off:'Вихідний',work:'Звичайний'}[type]);
+    grid.appendChild(el);
+  }
+}
+
+function renderList(months){
+  const list = document.getElementById('list');
+  list.innerHTML = '';
+  const today = startOfDay(new Date());
+  const end = addDays(today, Math.max(60, months * 31));
+
+  const items = [];
+  for(const [k,v] of map.entries()){
+    if(v === 'work') continue;
+    const d = startOfDay(new Date(k + 'T12:00:00'));
+    if(d < addDays(today, -1) || d > end) continue;
+    items.push({ d, k, v });
+  }
+  items.sort((a,b)=>a.d-b.d);
+
+  const names = { duty: 'Чергування', rest: 'Відсипний', off: 'Вихідний' };
+  let shown = 0;
+  for(const it of items){
+    if(shown >= 40) break;
+    const wd = it.d.getDay();
+    const label = it.d.getDate() + ' ' + MONTHS[it.d.getMonth()].toLowerCase() + ', ' + DOW[wd];
+    const div = document.createElement('div');
+    div.className = 'item';
+    div.innerHTML = '<span>'+label+'</span><span class="badge '+it.v+'">'+names[it.v]+'</span>';
+    list.appendChild(div);
+    shown++;
+  }
+  if(!shown) list.innerHTML = '<div class="item">Немає дат — перевір початкову дату</div>';
+}
+
+document.getElementById('calc').addEventListener('click', buildMap);
+document.getElementById('todayBtn').addEventListener('click', ()=>{
+  document.getElementById('anchor').value = key(startOfDay(new Date()));
+  buildMap();
+});
+document.getElementById('prev').addEventListener('click', ()=>{
+  viewMonth--;
+  if(viewMonth<0){ viewMonth=11; viewYear--; }
+  renderCal();
+});
+document.getElementById('next').addEventListener('click', ()=>{
+  viewMonth++;
+  if(viewMonth>11){ viewMonth=0; viewYear++; }
+  renderCal();
+});
+document.getElementById('interval').addEventListener('change', ()=>{
+  document.getElementById('intLabel').textContent = document.getElementById('interval').value;
+});
+
+load();
+// auto calc on load if date present
+if(document.getElementById('anchor').value) buildMap();
+</script>
+</body>
+</html>
